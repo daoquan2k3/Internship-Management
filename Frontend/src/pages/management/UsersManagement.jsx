@@ -49,6 +49,13 @@ const UsersManagement = () => {
     phoneNumber: "",
     role: "ROLE_STUDENT",
     password: "",
+    studentCode: "",
+    major: "",
+    classRoom: "",
+    dateOfBirth: "",
+    address: "",
+    department: "",
+    academicRank: "",
   });
 
   useEffect(() => {
@@ -92,6 +99,13 @@ const UsersManagement = () => {
         phoneNumber: "",
         role: "ROLE_STUDENT",
         password: "",
+        studentCode: "",
+        major: "",
+        classRoom: "",
+        dateOfBirth: "",
+        address: "",
+        department: "",
+        academicRank: "",
       });
     }
     setOpenModal(true);
@@ -426,6 +440,9 @@ const UsersManagement = () => {
                   borderRadius: 4,
                   overflow: "hidden",
                   boxShadow: "0 24px 48px rgba(0,0,0,0.25)",
+                  display: "flex",
+                  flexDirection: "column",
+                  maxHeight: "90vh",
                 }}
               >
                 <Box
@@ -457,7 +474,7 @@ const UsersManagement = () => {
 
                 <Divider />
 
-                <Box sx={{ p: 4, bgcolor: "#fff" }}>
+                <Box sx={{ p: 4, bgcolor: "#fff", overflowY: "auto", flex: 1 }}>
                   <Stack spacing={3}>
                     <TextField
                       fullWidth
@@ -514,17 +531,86 @@ const UsersManagement = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, role: e.target.value })
                         }
+                        disabled={editingUser !== null}
                       >
                         <MenuItem value="ROLE_STUDENT">Học sinh</MenuItem>
                         <MenuItem value="ROLE_MENTOR">Cố vấn</MenuItem>
                         <MenuItem value="ROLE_ADMIN">Admin</MenuItem>
                       </Select>
                     </FormControl>
+
+                    {formData.role === "ROLE_STUDENT" && !editingUser && (
+                      <>
+                        <TextField
+                          fullWidth
+                          label="Mã sinh viên"
+                          value={formData.studentCode}
+                          onChange={(e) =>
+                            setFormData({ ...formData, studentCode: e.target.value })
+                          }
+                        />
+                        <TextField
+                          fullWidth
+                          label="Chuyên ngành"
+                          value={formData.major}
+                          onChange={(e) =>
+                            setFormData({ ...formData, major: e.target.value })
+                          }
+                        />
+                        <TextField
+                          fullWidth
+                          label="Lớp"
+                          value={formData.classRoom}
+                          onChange={(e) =>
+                            setFormData({ ...formData, classRoom: e.target.value })
+                          }
+                        />
+                        <TextField
+                          fullWidth
+                          label="Ngày sinh"
+                          type="date"
+                          InputLabelProps={{ shrink: true }}
+                          value={formData.dateOfBirth}
+                          onChange={(e) =>
+                            setFormData({ ...formData, dateOfBirth: e.target.value })
+                          }
+                        />
+                        <TextField
+                          fullWidth
+                          label="Địa chỉ"
+                          value={formData.address}
+                          onChange={(e) =>
+                            setFormData({ ...formData, address: e.target.value })
+                          }
+                        />
+                      </>
+                    )}
+
+                    {formData.role === "ROLE_MENTOR" && !editingUser && (
+                      <>
+                        <TextField
+                          fullWidth
+                          label="Phòng ban"
+                          value={formData.department}
+                          onChange={(e) =>
+                            setFormData({ ...formData, department: e.target.value })
+                          }
+                        />
+                        <TextField
+                          fullWidth
+                          label="Cấp bậc (Học hàm/Học vị)"
+                          value={formData.academicRank}
+                          onChange={(e) =>
+                            setFormData({ ...formData, academicRank: e.target.value })
+                          }
+                        />
+                      </>
+                    )}
                   </Stack>
                 </Box>
 
                 <Box
-                  sx={{ p: 3, pt: 0, display: "flex", gap: 2, bgcolor: "#fff" }}
+                  sx={{ p: 3, pt: 2, display: "flex", gap: 2, bgcolor: "#fff" }}
                 >
                   <Button
                     fullWidth

@@ -42,6 +42,9 @@ const ReportManagement = () => {
   const [gradeData, setGradeData] = useState({ score: "", feedback: "" });
   const [submittingGrade, setSubmittingGrade] = useState(false);
 
+  // --- STATE CHO AI ---
+  const [analyzingId, setAnalyzingId] = useState(null);
+
   const fetchReports = async () => {
     try {
       setLoading(true);
@@ -164,6 +167,21 @@ const ReportManagement = () => {
       toast.error("Không thể lưu điểm lúc này!");
     } finally {
       setSubmittingGrade(false);
+    }
+  };
+
+  const handleAnalyzeAI = async (report) => {
+    try {
+      setAnalyzingId(report.reportId);
+      toast.info("AI đang phân tích báo cáo, vui lòng đợi...");
+      await reportApi.analyzeReportAI(report.reportId);
+      toast.success("Phân tích AI thành công!");
+      fetchReports();
+    } catch (error) {
+      console.error("Lỗi phân tích AI:", error);
+      toast.error(error.response?.data?.message || "Không thể phân tích báo cáo. Vui lòng thử lại!");
+    } finally {
+      setAnalyzingId(null);
     }
   };
 
@@ -302,28 +320,63 @@ const ReportManagement = () => {
 
                     <Divider sx={{ mb: 2, position: "relative", zIndex: 1, borderStyle: "dashed" }} />
 
-                    {/* BUTTONS: TẢI XUỐNG & CHẤM ĐIỂM */}
-                    <Box sx={{ display: "flex", justifyContent: "space-between", position: "relative", zIndex: 1, gap: 1 }}>
-                      <Button
-                        startIcon={<EditNoteIcon />}
-                        size="medium"
-                        variant={report.reportStatus === "GRADED" ? "outlined" : "contained"}
-                        color={report.reportStatus === "GRADED" ? "inherit" : "warning"}
-                        onClick={() => handleOpenGradeDialog(report)}
-                        sx={{ borderRadius: 2, fontWeight: 700, flex: 1, boxShadow: report.reportStatus !== "GRADED" ? "0 4px 10px rgba(245, 158, 11, 0.2)" : "none" }}
-                      >
-                        {report.reportStatus === "GRADED" ? "SỬA ĐIỂM" : "CHẤM ĐIỂM"}
-                      </Button>
+                    {/* AI INSIGHTS CARD */}
+                    {report.aiSummary && (
+                      <Box sx={{ mb: 3, p: 2, borderRadius: 2, bgcolor: 'rgba(156, 39, 176, 0.05)', border: '1px solid rgba(156, 39, 176, 0.2)', position: 'relative', zIndex: 1 }}>
+                        <Typography variant="subtitle2" sx={{ color: '#9c27b0', fontWeight: 'bold', display: 'flex', alignItems: 'center', mb: 1 }}>
+                          ✨ Phân tích từ AI (Gemini)
+                        </Typography>
+                        
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#333' }}>Tóm tắt:</Typography>
+                        <Typography variant="body2" sx={{ mb: 1, color: '#555', pl: 1, borderLeft: '2px solid #9c27b0' }}>{report.aiSummary}</Typography>
 
-                      <Button
-                        startIcon={<DownloadIcon />}
-                        size="medium"
-                        variant="contained"
-                        onClick={() => handleDownload(report)}
-                        sx={{ borderRadius: 2, fontWeight: 700, flex: 1, boxShadow: "0 4px 10px rgba(21, 101, 192, 0.2)", bgcolor: "#1565c0", "&:hover": { bgcolor: "#0d47a1" } }}
-                      >
-                        TẢI XUỐNG
-                      </Button>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#d32f2f', mt: 1 }}>Khó khăn (Blockers):</Typography>
+                        <Typography variant="body2" sx={{ mb: 1, color: '#d32f2f', pl: 1, borderLeft: '2px solid #d32f2f' }}>{report.aiBlockers}</Typography>
+
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#1976d2', mt: 1 }}>Cảm xúc:</Typography>
+                        <Typography variant="body2" sx={{ mb: 1, color: '#1976d2', pl: 1, borderLeft: '2px solid #1976d2' }}>{report.aiSentiment}</Typography>
+
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#2e7d32', mt: 1 }}>Gợi ý nhận xét:</Typography>
+                        <Typography variant="body2" sx={{ color: '#2e7d32', pl: 1, borderLeft: '2px solid #2e7d32' }}>{report.aiSuggestedFeedback}</Typography>
+                      </Box>
+                    )}
+
+                    {/* BUTTONS: TẢI XUỐNG & CHẤM ĐIỂM */}
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1, position: "relative", zIndex: 1 }}>
+                      {!report.aiSummary && (
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          onClick={() => handleAnalyzeAI(report)}
+                          disabled={analyzingId === report.reportId}
+                          startIcon={analyzingId === report.reportId ? <CircularProgress size={20} /> : "✨"}
+                          sx={{ borderRadius: 2, fontWeight: 700, borderColor: '#9c27b0', color: '#9c27b0', "&:hover": { borderColor: '#7b1fa2', bgcolor: 'rgba(156, 39, 176, 0.04)' } }}
+                        >
+                          {analyzingId === report.reportId ? "Đang phân tích..." : "PHÂN TÍCH BẰNG AI"}
+                        </Button>
+                      )}
+                      <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
+                        <Button
+                          startIcon={<EditNoteIcon />}
+                          size="medium"
+                          variant={report.reportStatus === "GRADED" ? "outlined" : "contained"}
+                          color={report.reportStatus === "GRADED" ? "inherit" : "warning"}
+                          onClick={() => handleOpenGradeDialog(report)}
+                          sx={{ borderRadius: 2, fontWeight: 700, flex: 1, boxShadow: report.reportStatus !== "GRADED" ? "0 4px 10px rgba(245, 158, 11, 0.2)" : "none" }}
+                        >
+                          {report.reportStatus === "GRADED" ? "SỬA ĐIỂM" : "CHẤM ĐIỂM"}
+                        </Button>
+
+                        <Button
+                          startIcon={<DownloadIcon />}
+                          size="medium"
+                          variant="contained"
+                          onClick={() => handleDownload(report)}
+                          sx={{ borderRadius: 2, fontWeight: 700, flex: 1, boxShadow: "0 4px 10px rgba(21, 101, 192, 0.2)", bgcolor: "#1565c0", "&:hover": { bgcolor: "#0d47a1" } }}
+                        >
+                          TẢI XUỐNG
+                        </Button>
+                      </Box>
                     </Box>
                   </Paper>
                 </motion.div>

@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_server
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: internship_db
+      SPRING_PROFILES_ACTIVE: prod
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+  redis:
+    image: redis:alpine
+    container_name: redis_server
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq_server
+    ports:
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    restart: unless-stopped
+
+  backend:
+    build: .
+    container_name: spring_backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - rabbitmq
+    environment:
+      # Spring Boot sẽ kết nối với Redis & RabbitMQ thông qua TÊN SERVICE trong Docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/internship_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=admin123
+      - SPRING_PROFILES_ACTIVE=prod
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    restart: unless-stopped
+
+volumes:
+  pgdata:

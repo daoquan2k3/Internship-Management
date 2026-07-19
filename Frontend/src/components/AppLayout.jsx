@@ -18,6 +18,9 @@ import {
   DialogActions,
   Button,
   Avatar,
+  Menu,
+  MenuItem,
+  Divider,
 } from "@mui/material";
 import {
   ExpandLess,
@@ -35,6 +38,8 @@ import {
   WarningRounded as WarningIcon,
   UploadFile as UploadFileIcon,
   AssignmentTurnedIn as AssignmentTurnedInIcon,
+  Brightness4 as Brightness4Icon,
+  LightMode as LightModeIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -77,17 +82,17 @@ const allMenuItems = [
     roles: ["STUDENT", "ROLE_STUDENT"],
   },
   {
-    label: "User Management",
+    label: "Quản lý người dùng",
     icon: <PeopleIcon />,
     roles: ["ADMIN", "ROLE_ADMIN"],
     children: [
-      { label: "All Users", path: "/management/users" },
-      { label: "All Students", path: "/management/students" },
-      { label: "All Mentors", path: "/management/mentors" },
+      { label: "Danh sách người dùng", path: "/management/users" },
+      { label: "Danh sách sinh viên", path: "/management/students" },
+      { label: "Danh sách giảng viên", path: "/management/mentors" },
     ],
   },
   {
-    label: "Internship Management",
+    label: "Quản lý thực tập",
     icon: <SchoolIcon />,
     roles: [
       "ADMIN",
@@ -98,8 +103,8 @@ const allMenuItems = [
       "ROLE_STUDENT",
     ],
     children: [
-      { label: "Internship Phases", path: "/management/phases" },
-      { label: "Internship Assignments", path: "/management/assignments" },
+      { label: "Kỳ thực tập", path: "/management/phases" },
+      { label: "Nhiệm vụ thực tập", path: "/management/assignments" },
     ],
   },
   {
@@ -109,7 +114,7 @@ const allMenuItems = [
     roles: ["ADMIN", "ROLE_ADMIN", "MENTOR", "ROLE_MENTOR"],
   },
   {
-    label: "Assessment Management",
+    label: "Đánh giá thực tập",
     icon: <RateReviewIcon />,
     roles: [
       "ADMIN",
@@ -120,9 +125,9 @@ const allMenuItems = [
       "ROLE_STUDENT",
     ],
     children: [
-      { label: "Evaluation Criteria", path: "/management/evaluation-criteria" },
-      { label: "Assessment Rounds", path: "/management/assessment-rounds" },
-      { label: "Assessment Results", path: "/management/assessment-results" },
+      { label: "Tiêu chí đánh giá", path: "/management/evaluation-criteria" },
+      { label: "Vòng đánh giá", path: "/management/assessment-rounds" },
+      { label: "Kết quả đánh giá", path: "/management/assessment-results" },
     ],
   },
 ];
@@ -131,6 +136,8 @@ export const AppLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const openMenu = Boolean(anchorEl);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useContext(AuthContext);
@@ -145,9 +152,9 @@ export const AppLayout = ({ children }) => {
 
   useEffect(() => {
     if (user && user.role !== "ROLE_ADMIN") {
-      const isMissingInfo = 
-        !user.fullName || 
-        !user.phoneNumber || 
+      const isMissingInfo =
+        !user.fullName ||
+        !user.phoneNumber ||
         (user.role === "ROLE_STUDENT" && (!user.student?.major || !user.student?.classRoom)) ||
         (user.role === "ROLE_MENTOR" && (!user.mentor?.department));
 
@@ -201,6 +208,14 @@ export const AppLayout = ({ children }) => {
   const handleNavigate = (path) => {
     navigate(path);
     setMobileOpen(false);
+  };
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
 
   const handleOpenLogoutDialog = () => {
@@ -407,7 +422,6 @@ export const AppLayout = ({ children }) => {
             elevation={0}
             sx={{
               p: 1.5,
-              mb: 2,
               background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
               border: "1px solid #e2e8f0",
               borderRadius: "16px",
@@ -495,34 +509,6 @@ export const AppLayout = ({ children }) => {
             </Box>
           </Paper>
         </motion.div>
-
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
-          <ListItem
-            component="div"
-            onClick={handleOpenLogoutDialog}
-            sx={{
-              cursor: "pointer",
-              borderRadius: "12px",
-              backgroundColor: "#fff5f5",
-              border: "1px solid #ffcdd2",
-              color: "#d32f2f",
-              boxShadow: "0 2px 8px rgba(211,47,47,0.1)",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                backgroundColor: "#ffebee",
-                boxShadow: "0 4px 12px rgba(211,47,47,0.2)",
-              },
-            }}
-          >
-            <ListItemIcon sx={{ color: "#d32f2f", minWidth: 40 }}>
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary="Đăng xuất"
-              primaryTypographyProps={{ fontWeight: 700 }}
-            />
-          </ListItem>
-        </motion.div>
       </Box>
     </Box>
   );
@@ -561,10 +547,71 @@ export const AppLayout = ({ children }) => {
               <IconButton
                 color="inherit"
                 size="large"
-                onClick={() => navigate("/settings")}
+                onClick={handleMenuClick}
+                aria-controls={openMenu ? 'account-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={openMenu ? 'true' : undefined}
               >
                 <SettingsIcon />
               </IconButton>
+
+              <Menu
+                anchorEl={anchorEl}
+                id="account-menu"
+                open={openMenu}
+                onClose={handleMenuClose}
+                onClick={handleMenuClose}
+                PaperProps={{
+                  elevation: 0,
+                  sx: {
+                    overflow: 'visible',
+                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                    mt: 1.5,
+                    minWidth: 200,
+                    borderRadius: '12px',
+                    '&::before': {
+                      content: '""',
+                      display: 'block',
+                      position: 'absolute',
+                      top: 0,
+                      right: 14,
+                      width: 10,
+                      height: 10,
+                      bgcolor: 'background.paper',
+                      transform: 'translateY(-50%) rotate(45deg)',
+                      zIndex: 0,
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <MenuItem onClick={handleMenuClose}>
+                  <ListItemIcon>
+                    <Brightness4Icon fontSize="small" />
+                  </ListItemIcon>
+                  Đổi màu sáng tối
+                </MenuItem>
+                <Divider sx={{ my: 0.5 }} />
+                <MenuItem onClick={() => {
+                  navigate("/settings");
+                  handleMenuClose();
+                }}>
+                  <ListItemIcon>
+                    <PersonIcon fontSize="small" />
+                  </ListItemIcon>
+                  Hồ sơ
+                </MenuItem>
+                <MenuItem sx={{ color: 'error.main' }} onClick={() => {
+                  handleOpenLogoutDialog();
+                  handleMenuClose();
+                }}>
+                  <ListItemIcon sx={{ color: 'error.main' }}>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                  Đăng xuất
+                </MenuItem>
+              </Menu>
             </Box>
           </Toolbar>
         </AppBar>

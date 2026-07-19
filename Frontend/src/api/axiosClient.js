@@ -3,7 +3,7 @@ import { toast } from 'react-toastify'; // Import thư viện thông báo
 
 const BASE_URL = import.meta.env.DEV
     ? 'http://localhost:8080'
-    : 'https://152.42.219.216.nip.io';
+    : '';
 
 const axiosClient = axios.create({
     baseURL: BASE_URL,

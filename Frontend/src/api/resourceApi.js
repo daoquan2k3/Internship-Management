@@ -237,6 +237,8 @@ export const reportApi = {
     }),
 
   gradeReport: (reportId, data) => axiosClient.put(`/api/v1/reports/${reportId}/grade`, data),
+
+  analyzeReportAI: (reportId) => axiosClient.post(`/api/v1/reports/${reportId}/analyze`),
 };
 
 export const notificationApi = {
