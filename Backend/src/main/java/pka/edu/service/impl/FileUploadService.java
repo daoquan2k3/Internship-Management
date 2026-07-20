@@ -32,7 +32,7 @@ public class FileUploadService {
     public String uploadDocument(MultipartFile file) throws IOException {
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                 ObjectUtils.asMap(
-                        "resource_type", "auto",
+                        "resource_type", "raw",
                         "folder", "reports"
                 ));
 

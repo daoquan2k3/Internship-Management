@@ -32,26 +32,39 @@ public class GeminiAIService {
             throw new Exception("Gemini API Key is not configured. Please add GEMINI_API_KEY to environment variables.");
         }
 
-        String mimeType = "image/jpeg";
-        String lowerUrl = imageUrl.toLowerCase();
-        if (lowerUrl.endsWith(".pdf")) {
-            mimeType = "application/pdf";
-        } else if (lowerUrl.endsWith(".png")) {
-            mimeType = "image/png";
-        } else if (lowerUrl.endsWith(".jpg") || lowerUrl.endsWith(".jpeg")) {
-            mimeType = "image/jpeg";
-        } else {
-            throw new Exception("AI currently only supports analyzing PDF or Image files (JPG, PNG). Please submit the report in a supported format to use AI.");
-        }
-
         log.info("Bắt đầu tải file báo cáo từ: {}", imageUrl);
-        byte[] fileBytes = restTemplate.getForObject(imageUrl, byte[].class);
+        ResponseEntity<byte[]> fileEntity;
+        try {
+            fileEntity = restTemplate.getForEntity(imageUrl, byte[].class);
+        } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized e) {
+            throw new Exception("Lỗi bảo mật từ Cloudinary (401 Unauthorized). File báo cáo này đã bị chặn quyền truy cập do thiết lập bảo mật. Vui lòng XÓA file báo cáo cũ và UPLOAD lại file mới để sử dụng tính năng AI.");
+        } catch (Exception e) {
+            throw new Exception("Lỗi khi tải file báo cáo: " + e.getMessage());
+        }
+        
+        byte[] fileBytes = fileEntity.getBody();
         if (fileBytes == null) {
             throw new Exception("Unable to download report file from URL.");
         }
+
+        String mimeType = "application/pdf"; // Default fallback for Cloudinary raw files
+        MediaType contentType = fileEntity.getHeaders().getContentType();
+        if (contentType != null) {
+            String type = contentType.toString().toLowerCase();
+            if (type.contains("pdf")) {
+                mimeType = "application/pdf";
+            } else if (type.contains("png")) {
+                mimeType = "image/png";
+            } else if (type.contains("jpg") || type.contains("jpeg")) {
+                mimeType = "image/jpeg";
+            } else if (type.contains("word") || type.contains("document")) {
+                throw new Exception("AI currently only supports analyzing PDF or Image files (JPG, PNG). The uploaded file appears to be a Word document which is not supported by AI.");
+            }
+        }
+
         String base64Data = Base64.getEncoder().encodeToString(fileBytes);
 
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + geminiApiKey;
 
         String prompt = "Đây là tài liệu báo cáo thực tập của một sinh viên. Hãy đóng vai trò là một trợ lý AI cho Mentor.\n" +
                 "Nhiệm vụ:\n" +
