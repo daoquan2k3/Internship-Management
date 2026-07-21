@@ -26,6 +26,14 @@ public interface IStudentRepository extends JpaRepository<Student, Long> {
     @Query("select s from Student s where s.user.isDeleted = false and s.user.isActive = true")
     Page<Student> findAllStudents(Pageable pageable);
 
+    @Query("select s from Student s left join s.user u where u.isDeleted = false and u.isActive = true " +
+           "and (:search is null or :search = '' or " +
+           "lower(u.fullName) like lower(concat('%', :search, '%')) or " +
+           "lower(u.email) like lower(concat('%', :search, '%')) or " +
+           "lower(s.studentCode) like lower(concat('%', :search, '%')) or " +
+           "cast(s.studentId as string) like concat('%', :search, '%'))")
+    Page<Student> findAllStudentsWithSearch(@Param("search") String search, Pageable pageable);
+
     @Query("select s from Student s where s.studentId in :studentIds and s.user.isDeleted = false and s.user.isActive = true")
     List<Student> findAllByStudentId(@Param("studentIds") List<Long> studentIds);
 }

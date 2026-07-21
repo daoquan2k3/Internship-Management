@@ -12,7 +12,7 @@ import pka.edu.exception.ResourceForbiddenException;
 import pka.edu.exception.ResourceNotFoundException;
 
 public interface IMentorService {
-    PageResponseDTO<Object> getAllMentor(PageRequestDTO pageRequestDTO) throws ResourceNotFoundException, ResourceForbiddenException;
+    PageResponseDTO<Object> getAllMentor(PageRequestDTO pageRequestDTO, String search) throws ResourceNotFoundException, ResourceForbiddenException;
     ApiResponse<Object> getMentorById(Long id) throws ResourceNotFoundException, ResourceForbiddenException;
     ApiResponse<MentorResponse> createMentor(MentorCreateRequest request) throws ResourceNotFoundException, ResourceForbiddenException, ResourceBadRequestException, ResourceConflictException;
     ApiResponse<MentorResponse> updateMentor(Long id, MentorUpdateRequest request) throws ResourceNotFoundException, ResourceForbiddenException, ResourceBadRequestException, ResourceConflictException;

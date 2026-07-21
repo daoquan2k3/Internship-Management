@@ -251,10 +251,16 @@ public class UserServiceImpl implements IUserService {
                 if (newRole == Role.ROLE_STUDENT) {
                     pka.edu.entity.Student newStudent = new pka.edu.entity.Student();
                     newStudent.setUser(users);
+                    // Lỗi: Các trường bắt buộc như studentCode đang trống có thể gây DataIntegrityViolationException.
+                    // Tạm thời vô hiệu hóa tài khoản và tạo một mã sinh viên ngẫu nhiên để pass validation. Admin/User cần update sau.
+                    newStudent.setStudentCode("TEMP_STU_" + users.getUserId());
+                    users.setActive(false);
                     studentRepository.save(newStudent);
                 } else if (newRole == Role.ROLE_MENTOR) {
                     pka.edu.entity.Mentor newMentor = new pka.edu.entity.Mentor();
                     newMentor.setUser(users);
+                    // Tạm thời vô hiệu hóa tài khoản để Admin/User cần update department sau.
+                    users.setActive(false);
                     mentorRepository.save(newMentor);
                 }
             }

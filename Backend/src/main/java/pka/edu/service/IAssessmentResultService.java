@@ -22,5 +22,5 @@ public interface IAssessmentResultService {
 
     ApiResponse<AssessmentResultResponse> getAssessmentResultById(Long resultId) throws ResourceNotFoundException;
 
-    void saveBulkGrades(BulkAssessmentSaveRequest request) throws ResourceNotFoundException, ResourceConflictException;
+    void saveBulkGrades(BulkAssessmentSaveRequest request) throws ResourceNotFoundException, ResourceConflictException, ResourceForbiddenException;
 }

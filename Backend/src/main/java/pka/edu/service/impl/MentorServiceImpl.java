@@ -36,17 +36,17 @@ public class MentorServiceImpl implements IMentorService {
     private final CurrentUserUtil currentUserUtil;
 
     @Override
-    public PageResponseDTO<Object> getAllMentor(PageRequestDTO pageRequestDTO) throws ResourceNotFoundException, ResourceForbiddenException {
+    public PageResponseDTO<Object> getAllMentor(PageRequestDTO pageRequestDTO, String search) throws ResourceNotFoundException, ResourceForbiddenException {
         User user = currentUserUtil.getCurrentUser();
 
         Page<Mentor> mentorPage;
         if (user.getRole() == Role.ROLE_ADMIN) {
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "mentor");
-            mentorPage = mentorRepository.findAllByMentor(pageable);
+            mentorPage = mentorRepository.findAllByMentorWithSearch(search, pageable);
             return PaginationUtil.toPageResponseDTO(mentorPage, MentorMapper::toDto);
         } else if (user.getRole() == Role.ROLE_STUDENT) {
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "mentor");
-            mentorPage = mentorRepository.findAllByMentor(pageable);
+            mentorPage = mentorRepository.findAllByMentorWithSearch(search, pageable);
             return PaginationUtil.toPageResponseDTO(mentorPage, MentorMapper::toPublicDto);
         } else {
             throw new ResourceForbiddenException("User role not supported for this operation");

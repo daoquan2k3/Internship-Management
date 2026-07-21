@@ -1,6 +1,5 @@
 package pka.edu.service.impl;
 
-import pka.edu.dto.request.ForgotPasswordRequest;
 import pka.edu.dto.request.FormLoginRequest;
 import pka.edu.dto.request.FormRegisterRequest;
 import pka.edu.dto.response.*;
@@ -53,7 +52,8 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     @Transactional
-    public ApiResponse<RegisterResponse> register(FormRegisterRequest request) throws ResourceBadRequestException, ResourceConflictException {
+    public ApiResponse<RegisterResponse> register(FormRegisterRequest request)
+            throws ResourceBadRequestException, ResourceConflictException {
         Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
 
         if (userRepository.existsByUsernameAndIsDeletedFalseAndIsActiveTrue(request.getUsername())) {
@@ -72,11 +72,11 @@ public class AuthServiceImpl implements IAuthService {
         if (request.getRole() != null) {
             try {
                 users.setRole(Role.valueOf(request.getRole().toUpperCase()));
-            }catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException e) {
                 errorList.put("role", "Invalid role value");
                 throw new ResourceBadRequestException("Validation failed", errorList);
             }
-        }else {
+        } else {
             users.setRole(Role.ROLE_STUDENT);
         }
 
@@ -92,7 +92,7 @@ public class AuthServiceImpl implements IAuthService {
             student.setUser(users);
             student.setStudentCode("STU" + String.format("%04d", users.getUserId()));
             iStudentRepository.save(student);
-        }else if (users.getRole() == Role.ROLE_MENTOR) {
+        } else if (users.getRole() == Role.ROLE_MENTOR) {
             Mentor mentor = new Mentor();
             mentor.setUser(users);
             iMentorRepository.save(mentor);
@@ -109,8 +109,7 @@ public class AuthServiceImpl implements IAuthService {
     public ApiResponse<JwtResponse> login(FormLoginRequest request) throws InvalidCredentialsException {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             User users = userPrincipal.getUsers();
 
@@ -130,7 +129,7 @@ public class AuthServiceImpl implements IAuthService {
                     .user(UserMapper.toDto(users))
                     .build();
             return new ApiResponse<>(response, true, "SUCCESS", null, LocalDateTime.now());
-        }catch (AuthenticationException ex) {
+        } catch (AuthenticationException ex) {
             throw new InvalidCredentialsException("Invalid username or password");
         }
     }
@@ -154,12 +153,12 @@ public class AuthServiceImpl implements IAuthService {
                 true,
                 "SUCCESS",
                 null,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
     }
 
     @Override
-    public ApiResponse<RefreshTokenResponse> refreshToken(String refreshToken) throws InvalidCredentialsException, ResourceNotFoundException {
+    public ApiResponse<RefreshTokenResponse> refreshToken(String refreshToken)
+            throws InvalidCredentialsException, ResourceNotFoundException {
         if (!refreshTokenService.isRefreshTokenValid(refreshToken)) {
             throw new InvalidCredentialsException("Invalid refresh token or expired");
         }
@@ -184,12 +183,6 @@ public class AuthServiceImpl implements IAuthService {
                 true,
                 "SUCCESS",
                 null,
-                LocalDateTime.now()
-        );
-    }
-
-    @Override
-    public ApiResponse<String> forgotPassword(ForgotPasswordRequest request) {
-        return null;
+                LocalDateTime.now());
     }
 }

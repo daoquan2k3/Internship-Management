@@ -84,11 +84,21 @@ public interface InternshipAssignmentRepository extends JpaRepository<Internship
             "where s.studentId = :studentId and ia.assignmentId = :assignmentId")
     boolean existsByStudentIdAndAssignmentId(@Param("studentId") Long studentId, @Param("assignmentId") Long assignmentId);
 
-    @Query("select s from InternshipAssignment ia " +
+    @Query("select distinct s from InternshipAssignment ia " +
             "join ia.students s " +
             "where ia.mentor.mentorId = :mentorId")
     Page<Student> findStudentsByMentorId(@Param("mentorId") Long mentorId,
                                          Pageable pageable);
+
+    @Query("select distinct s from InternshipAssignment ia " +
+            "join ia.students s left join s.user u " +
+            "where ia.mentor.mentorId = :mentorId " +
+            "and (:search is null or :search = '' or " +
+            "lower(u.fullName) like lower(concat('%', :search, '%')) or " +
+            "lower(u.email) like lower(concat('%', :search, '%')) or " +
+            "lower(s.studentCode) like lower(concat('%', :search, '%')) or " +
+            "cast(s.studentId as string) like concat('%', :search, '%'))")
+    Page<Student> findStudentsByMentorIdWithSearch(@Param("mentorId") Long mentorId, @Param("search") String search, Pageable pageable);
 
     long countByMentor_MentorId(Long mentorId);
 

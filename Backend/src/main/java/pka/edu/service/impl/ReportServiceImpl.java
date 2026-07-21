@@ -17,6 +17,7 @@ import pka.edu.service.IReportService;
 import pka.edu.util.CurrentUserUtil;
 import pka.edu.util.ExcelUtil;
 import pka.edu.util.PaginationUtil;
+import pka.edu.util.enums.AssignmentStatus;
 import pka.edu.util.enums.ReportStatus;
 import pka.edu.util.enums.Role;
 import lombok.RequiredArgsConstructor;
@@ -76,18 +77,22 @@ public class ReportServiceImpl implements IReportService {
             Page<InternshipAssignment> assignmentPage = internshipAssignmentRepository.findByStudent_StudentId(
                     "",
                     currentUserUtil.getCurrentUser().getStudent().getStudentId(),
-                    PageRequest.of(0, 10)
-            );
+                    PageRequest.of(0, 10));
 
             List<InternshipAssignment> assignments = assignmentPage.getContent();
 
             for (InternshipAssignment assignment : assignments) {
+                if (assignment.getStatus() != AssignmentStatus.IN_PROGRESS) {
+                    continue;
+                }
                 Long mentorUserId = assignment.getMentor().getUser().getUserId();
 
                 NotificationEventDTO eventDTO = NotificationEventDTO.builder()
                         .recipientId(mentorUserId)
                         .title("🔔 Báo cáo mới từ sinh viên!")
-                        .message("Sinh viên có mã sinh viên " + currentUserUtil.getCurrentUser().getStudent().getStudentCode() + " vừa nộp báo cáo: " + title)
+                        .message("Sinh viên có mã sinh viên "
+                                + currentUserUtil.getCurrentUser().getStudent().getStudentCode() + " vừa nộp báo cáo: "
+                                + title)
                         .type("REPORT")
                         .build();
 
@@ -193,7 +198,8 @@ public class ReportServiceImpl implements IReportService {
                     byte[] fileBytes = restTemplate.getForObject(report.getFileUrl(), byte[].class);
 
                     if (fileBytes != null) {
-                        String entryName = report.getStudentCode() + "_" + report.getOriginalFileName();
+                        String entryName = report.getStudentCode() + "_" + report.getReportId() + "_"
+                                + report.getOriginalFileName();
                         ZipEntry zipEntry = new ZipEntry(entryName);
                         zos.putNextEntry(zipEntry);
                         zos.write(fileBytes);

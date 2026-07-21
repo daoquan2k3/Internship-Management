@@ -201,12 +201,16 @@ public class AssessmentResultServiceImpl implements IAssessmentResultService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveBulkGrades(BulkAssessmentSaveRequest request) throws ResourceNotFoundException, ResourceConflictException {
+    public void saveBulkGrades(BulkAssessmentSaveRequest request) throws ResourceNotFoundException, ResourceConflictException, ResourceForbiddenException {
         Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
         User currentUser = currentUserUtil.getCurrentUser();
 
         InternshipAssignment assignment = internshipAssignmentRepository.findById(request.getAssignmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phân công ID: " + request.getAssignmentId()));
+
+        if (!internshipAssignmentRepository.existsByMentor_MentorIdAndAssignmentId(currentUser.getMentor().getMentorId(), request.getAssignmentId())) {
+            throw new ResourceForbiddenException("Bạn không có quyền chấm điểm cho đề tài này!");
+        }
 
         AssessmentRound round = iAssessmentRoundsRepository.findById(request.getRoundId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vòng đánh giá ID: " + request.getRoundId()));

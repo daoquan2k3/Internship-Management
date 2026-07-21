@@ -72,17 +72,17 @@ public class StudentServiceImpl implements IStudentService {
     }
 
     @Override
-    public PageResponseDTO<StudentResponse> getAllStudent(PageRequestDTO pageRequestDTO) throws ResourceForbiddenException {
+    public PageResponseDTO<StudentResponse> getAllStudent(PageRequestDTO pageRequestDTO, String search) throws ResourceForbiddenException {
 
         User currentUser = currentUserUtil.getCurrentUser();
         Page<Student> studentPage;
 
         if (currentUser.getRole() == Role.ROLE_ADMIN) {
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "student");
-            studentPage = studentRepository.findAllStudents(pageable);
+            studentPage = studentRepository.findAllStudentsWithSearch(search, pageable);
         } else if (currentUser.getRole() == Role.ROLE_MENTOR) {
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "student");
-            studentPage = internshipAssignmentRepository.findStudentsByMentorId(currentUser.getUserId(), pageable);
+            studentPage = internshipAssignmentRepository.findStudentsByMentorIdWithSearch(currentUser.getUserId(), search, pageable);
         } else {
             throw new ResourceForbiddenException("Current user does not have permission to view students");
         }

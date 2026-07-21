@@ -32,8 +32,8 @@ public class StudentController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR')")
-    public ResponseEntity<PageResponseDTO<StudentResponse>> getAllStudent(@ModelAttribute PageRequestDTO page) throws ResourceNotFoundException, ResourceForbiddenException {
-        return new ResponseEntity<>(studentService.getAllStudent(page), HttpStatus.OK);
+    public ResponseEntity<PageResponseDTO<StudentResponse>> getAllStudent(@RequestParam(required = false) String search, @ModelAttribute PageRequestDTO page) throws ResourceNotFoundException, ResourceForbiddenException {
+        return new ResponseEntity<>(studentService.getAllStudent(page, search), HttpStatus.OK);
     }
 
     @GetMapping("/me")

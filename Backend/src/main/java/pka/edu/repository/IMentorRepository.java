@@ -16,6 +16,14 @@ public interface IMentorRepository extends JpaRepository<Mentor, Long> {
     @Query("select m from Mentor m where m.user.isDeleted = false and m.user.isActive = true")
     Page<Mentor> findAllByMentor(Pageable pageable);
 
+    @Query("select m from Mentor m left join m.user u where u.isDeleted = false and u.isActive = true " +
+           "and (:search is null or :search = '' or " +
+           "lower(u.fullName) like lower(concat('%', :search, '%')) or " +
+           "lower(u.email) like lower(concat('%', :search, '%')) or " +
+           "lower(m.department) like lower(concat('%', :search, '%')) or " +
+           "cast(m.mentorId as string) like concat('%', :search, '%'))")
+    Page<Mentor> findAllByMentorWithSearch(@org.springframework.data.repository.query.Param("search") String search, Pageable pageable);
+
     @Query("select m from Mentor m where m.mentorId = :mentorId and m.user.isDeleted = false and m.user.isActive = true")
     Optional<Mentor> findByMentorId(@Param("mentorId") Long mentorId);
 
