@@ -75,7 +75,7 @@ const LoginPage = () => {
       sx={{
         minHeight: "100vh",
         display: "flex",
-        bgcolor: "#ffffff",
+        bgcolor: "background.paper",
         overflow: "hidden",
       }}
     >
@@ -169,11 +169,11 @@ const LoginPage = () => {
               disableRipple
               sx={{
                 mb: 4,
-                color: "#64748b",
+                color: "text.secondary",
                 fontWeight: 600,
                 textTransform: "none",
                 ml: -1,
-                "&:hover": { bgcolor: "transparent", color: "#0f172a" },
+                "&:hover": { bgcolor: "transparent", color: "text.primary" },
               }}
             >
               Trang chủ
@@ -187,7 +187,7 @@ const LoginPage = () => {
               sx={{
                 fontWeight: 900,
                 mb: 1.5,
-                color: "#0f172a",
+                color: "text.primary",
                 letterSpacing: "-1px",
               }}
             >
@@ -198,7 +198,7 @@ const LoginPage = () => {
           <motion.div variants={fadeUpVariant}>
             <Typography
               variant="body1"
-              sx={{ color: "#64748b", mb: 5, fontSize: "1.1rem" }}
+              sx={{ color: "text.secondary", mb: 5, fontSize: "1.1rem" }}
             >
               Vui lòng điền thông tin đăng nhập của bạn.
             </Typography>
@@ -253,7 +253,7 @@ const LoginPage = () => {
                         onClick={() => setShowPassword(!showPassword)}
                         onMouseDown={(e) => e.preventDefault()}
                         edge="end"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
@@ -278,10 +278,10 @@ const LoginPage = () => {
                 to="/forgot-password"
                 variant="body2"
                 sx={{
-                  color: "#64748b",
+                  color: "text.secondary",
                   textDecoration: "none",
                   fontWeight: 600,
-                  "&:hover": { color: "#0f172a" },
+                  "&:hover": { color: "text.primary" },
                 }}
               >
                 Quên mật khẩu?
@@ -316,7 +316,7 @@ const LoginPage = () => {
             <Typography
               variant="body1"
               align="center"
-              sx={{ color: "#64748b" }}
+              sx={{ color: "text.secondary" }}
             >
               Chưa có tài khoản?{" "}
               <Link

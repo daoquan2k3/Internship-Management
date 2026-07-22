@@ -5,7 +5,6 @@ import { authApi } from "../../api/authApi";
 import {
   Box,
   Typography,
-  TextField,
   Button,
   CircularProgress,
   Stack,
@@ -91,7 +90,7 @@ const ResetPasswordPage = () => {
       sx={{
         minHeight: "100vh",
         display: "flex",
-        bgcolor: "#ffffff",
+        bgcolor: "background.paper",
         overflow: "hidden",
       }}
     >
@@ -183,7 +182,7 @@ const ResetPasswordPage = () => {
               sx={{
                 fontWeight: 900,
                 mb: 1.5,
-                color: "#0f172a",
+                color: "text.primary",
                 letterSpacing: "-1px",
               }}
             >
@@ -194,7 +193,7 @@ const ResetPasswordPage = () => {
           <motion.div variants={fadeUpVariant}>
             <Typography
               variant="body1"
-              sx={{ color: "#64748b", mb: 4, fontSize: "1.1rem" }}
+              sx={{ color: "text.secondary", mb: 4, fontSize: "1.1rem" }}
             >
               Vui lòng tạo một mật khẩu mạnh và không chia sẻ với bất kỳ ai.
             </Typography>
@@ -237,7 +236,7 @@ const ResetPasswordPage = () => {
                         onClick={() => setShowNewPassword(!showNewPassword)}
                         onMouseDown={(e) => e.preventDefault()}
                         edge="end"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       >
                         {showNewPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
@@ -282,7 +281,7 @@ const ResetPasswordPage = () => {
                         }
                         onMouseDown={(e) => e.preventDefault()}
                         edge="end"
-                        sx={{ color: "#64748b" }}
+                        sx={{ color: "text.secondary" }}
                       >
                         {showConfirmPassword ? (
                           <VisibilityOff />

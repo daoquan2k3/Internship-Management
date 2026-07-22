@@ -1,38 +1,48 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { AppLayout } from "./components/AppLayout";
+import { Box, CircularProgress } from "@mui/material";
+import { AppLayout } from "./components/layout/AppLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import RequireProfileCompletion from "./components/RequireProfileCompletion";
+import { ToastContainer } from "react-toastify";
+import { AnimatePresence } from "framer-motion";
+
 // Auth Pages
-import LoginPage from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
-// mentor dashboard
-import AssignedMentor from "./pages/mentors/AssignedMentor";
+const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/auth/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/auth/ResetPasswordPage"));
 
-// student dashboard
-import AssignedStudents from "./pages/students/AssignedStudents";
-import StudentReportSubmit from "./pages/students/StudentReportSubmit";
+// Dashboard & General Pages
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const MainDashboard = lazy(() => import("./pages/MainDashboard"));
+const SettingsPage = lazy(() => import("./pages/settings/SettingsPage"));
 
-import MainDashboard from "./pages/MainDashboard";
+// Mentor & Student
+const AssignedMentor = lazy(() => import("./pages/mentors/AssignedMentor"));
+const AssignedStudents = lazy(() => import("./pages/students/AssignedStudents"));
+const StudentReportSubmit = lazy(() => import("./pages/students/StudentReportSubmit"));
 
 // Management Pages
-import UsersManagement from "./pages/management/UsersManagement";
-import StudentsManagement from "./pages/management/StudentsManagement";
-import MentorsManagement from "./pages/management/MentorsManagement";
-import InternshipPhasesManagement from "./pages/management/InternshipPhasesManagement";
-import InternshipAssignmentsManagement from "./pages/management/InternshipAssignmentsManagement";
-import AssessmentRoundsManagement from "./pages/management/AssessmentRoundsManagement";
-import EvaluationCriteriaManagement from "./pages/management/EvaluationCriteriaManagement";
-import AssessmentResultsManagement from "./pages/management/AssessmentResultsManagement";
-import ReportManagement from "./pages/management/ReportManagement";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { ToastContainer } from "react-toastify";
-import AssessmentRoundDetail from "./pages/management/AssessmentRoundDetail";
-import AssessmentResultDetail from "./pages/management/AssessmentResultDetail";
-import LandingPage from "./pages/LandingPage";
-import { AnimatePresence } from "framer-motion";
-import AssignmentDetail from "./pages/AssignmentDetail";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
-import SettingsPage from "./pages/SettingsPage";
-import RequireProfileCompletion from "./components/RequireProfileCompletion";
+const UsersManagement = lazy(() => import("./pages/management/users/UsersManagement"));
+const StudentsManagement = lazy(() => import("./pages/management/students/StudentsManagement"));
+const MentorsManagement = lazy(() => import("./pages/management/mentors/MentorsManagement"));
+const InternshipPhasesManagement = lazy(() => import("./pages/management/phases/InternshipPhasesManagement"));
+const InternshipAssignmentsManagement = lazy(() => import("./pages/management/assignments/InternshipAssignmentsManagement"));
+const AssessmentRoundsManagement = lazy(() => import("./pages/management/assessment-rounds/AssessmentRoundsManagement"));
+const EvaluationCriteriaManagement = lazy(() => import("./pages/management/evaluation-criteria/EvaluationCriteriaManagement"));
+const ReportManagement = lazy(() => import("./pages/management/reports/ReportManagement"));
+const AssessmentResultsManagement = lazy(() => import("./pages/management/assessment-results/AssessmentResultsManagement"));
+const AssessmentResultDetail = lazy(() => import("./pages/management/assessment-results/AssessmentResultDetail"));
+const AssessmentRoundDetail = lazy(() => import("./pages/management/assessment-rounds/AssessmentRoundDetail"));
+const AssignmentDetail = lazy(() => import("./pages/management/assignments/AssignmentDetail"));
+
+// Fallback Loader
+const PageLoader = () => (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress color="primary" />
+    </Box>
+);
 
 function App() {
     const location = useLocation();
@@ -48,7 +58,8 @@ function App() {
                 theme="colored"
             />
             <AnimatePresence mode="wait">
-                <Routes location={location} key={location.pathname}>
+                <Suspense fallback={<PageLoader />}>
+                    <Routes location={location} key={location.pathname}>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/" element={<LandingPage />} />
@@ -180,7 +191,7 @@ function App() {
                                 }
                             />
                             <Route
-                                path="/assignments/:id"
+                                path="/admin/assignments/:id"
                                 element={
                                     <AppLayout>
                                         <AssignmentDetail />
@@ -198,7 +209,8 @@ function App() {
                         />
                     </Route>
                     <Route path="*" element={<Navigate to="/login" replace />} />
-                </Routes>
+                    </Routes>
+                </Suspense>
             </AnimatePresence>
         </>
     );

@@ -25,14 +25,8 @@ const ProtectedRoute = ({ allowedRoles }) => {
     if (allowedRoles && !allowedRoles.includes(user.role)) {
         console.warn(`Truy cập bị từ chối: User có quyền ${user.role} không thể vào trang này.`);
 
-        // Tự động điều hướng user về đúng trang chủ của họ dựa trên Role
-        if (user.role === 'ROLE_ADMIN') {
-            return <Navigate to="/admin-dashboard" replace />;
-        } else if (user.role === 'ROLE_MENTOR') {
-            return <Navigate to="/mentor-dashboard" replace />;
-        } else {
-            return <Navigate to="/dashboard" replace />; // Trang mặc định cho Student
-        }
+        // Tự động điều hướng user về trang dashboard chung để MainDashboard xử lý
+        return <Navigate to="/dashboard" replace />;
     }
 
     // 4. Nếu hợp lệ hết -> Cho phép render nội dung của trang

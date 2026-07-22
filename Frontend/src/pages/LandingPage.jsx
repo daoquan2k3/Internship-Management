@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useThemeContext } from '../context/ThemeContext';
 import { Box, Typography, Button, Container, AppBar, Toolbar, Stack, Chip, Grid, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -54,7 +54,8 @@ const FeatureCard = ({ icon, title, desc, delay, themeColors }) => (
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [isDark, setIsDark] = useState(true); // Default là Dark Mode
+  const { mode, toggleColorMode } = useThemeContext();
+  const isDark = mode === 'dark';
 
   // --- BỘ MÀU SẮC ĐỘNG TÙY THEO THEME ---
   const themeColors = {
@@ -111,7 +112,7 @@ const LandingPage = () => {
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: '-0.5px', color: themeColors.text, display: 'flex', alignItems: 'center', gap: 1.5, transition: 'color 0.5s ease' }}>
                 <Box sx={{ width: 26, height: 26, borderRadius: 1.5, background: 'linear-gradient(135deg, #38bdf8 0%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(56,189,248,0.4)' }}>
-                  <Box sx={{ width: 10, height: 10, bgcolor: '#fff', borderRadius: '50%' }} />
+                  <Box sx={{ width: 10, height: 10, bgcolor: "background.paper", borderRadius: '50%' }} />
                 </Box>
                 Internship<Box component="span" sx={{ color: themeColors.muted, fontWeight: 600 }}>System</Box>
               </Typography>
@@ -122,7 +123,7 @@ const LandingPage = () => {
                 
                 {/* NÚT CHUYỂN SÁNG TỐI */}
                 <IconButton 
-                  onClick={() => setIsDark(!isDark)} 
+                  onClick={toggleColorMode} 
                   sx={{ color: themeColors.muted, mr: 1, '&:hover': { color: themeColors.text, bgcolor: themeColors.border } }}
                 >
                   <AnimatePresence mode="wait" initial={false}>

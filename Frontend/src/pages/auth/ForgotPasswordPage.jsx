@@ -67,7 +67,7 @@ const ForgotPasswordPage = () => {
       sx={{
         minHeight: "100vh",
         display: "flex",
-        bgcolor: "#ffffff",
+        bgcolor: "background.paper",
         overflow: "hidden",
       }}
     >
@@ -99,11 +99,11 @@ const ForgotPasswordPage = () => {
               disableRipple
               sx={{
                 mb: 4,
-                color: "#64748b",
+                color: "text.secondary",
                 fontWeight: 600,
                 textTransform: "none",
                 ml: -1,
-                "&:hover": { bgcolor: "transparent", color: "#0f172a" },
+                "&:hover": { bgcolor: "transparent", color: "text.primary" },
               }}
             >
               Quay lại Đăng nhập
@@ -117,7 +117,7 @@ const ForgotPasswordPage = () => {
               sx={{
                 fontWeight: 900,
                 mb: 1.5,
-                color: "#0f172a",
+                color: "text.primary",
                 letterSpacing: "-1px",
               }}
             >
@@ -128,7 +128,7 @@ const ForgotPasswordPage = () => {
           <motion.div variants={fadeUpVariant}>
             <Typography
               variant="body1"
-              sx={{ color: "#64748b", mb: 4, fontSize: "1.1rem" }}
+              sx={{ color: "text.secondary", mb: 4, fontSize: "1.1rem" }}
             >
               Nhập địa chỉ email liên kết với tài khoản. Chúng tôi sẽ gửi một
               liên kết an toàn để bạn đặt lại mật khẩu.
@@ -170,7 +170,7 @@ const ForgotPasswordPage = () => {
                 fontSize: "1rem",
                 fontWeight: 700,
                 borderRadius: "12px",
-                bgcolor: "#0f172a",
+                bgcolor: "text.primary",
                 color: "#fff",
                 textTransform: "none",
                 "&:hover": { bgcolor: "#334155" },
