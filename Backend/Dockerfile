@@ -10,6 +10,8 @@ RUN chmod +x ./gradlew
 
 RUN ./gradlew build -x test
 
+RUN rm -f build/libs/*-plain.jar
+
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 

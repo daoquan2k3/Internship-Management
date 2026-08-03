@@ -54,5 +54,14 @@ services:
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
     restart: unless-stopped
 
+  frontend:
+    build: Frontend
+    container_name: react_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   pgdata:
