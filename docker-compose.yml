@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
 
   backend:
-    build: .
+    build: Backend
     container_name: spring_backend
     ports:
       - "8080:8080"
