@@ -6,7 +6,7 @@ import pka.edu.dto.response.PageResponseDTO;
 import pka.edu.entity.Notification;
 import pka.edu.entity.User;
 import pka.edu.mapper.NotificationMapper;
-import pka.edu.repository.INotificationRepository;
+import pka.edu.repository.NotificationRepository;
 import pka.edu.util.CurrentUserUtil;
 import pka.edu.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final INotificationRepository notificationRepository;
+    private final NotificationRepository notificationRepository;
     private final CurrentUserUtil currentUserUtil;
 
     public void createNotification(User recipient, String message, String type) {

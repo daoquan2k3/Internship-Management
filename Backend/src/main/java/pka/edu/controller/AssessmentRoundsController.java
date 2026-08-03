@@ -25,16 +25,17 @@ public class AssessmentRoundsController {
     private final IAssessmentRoundsService assessmentRoundsService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<AssessmentRoundsResponse>> createAssessmentRound(@Valid @RequestBody AssessmentRoundCreateRequest request) throws ResourceNotFoundException, ResourceConflictException {
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_UNIVERSITY_REP', 'ROLE_TEACHER')")
+    public ResponseEntity<ApiResponse<AssessmentRoundsResponse>> createAssessmentRound(@Valid @RequestBody AssessmentRoundCreateRequest request) throws ResourceNotFoundException, ResourceConflictException, pka.edu.exception.ResourceForbiddenException {
         return new ResponseEntity<>(assessmentRoundsService.createAssessmentRound(request), HttpStatus.CREATED);
     }
 
     @GetMapping
     public ResponseEntity<PageResponseDTO<AssessmentRoundsResponse>> getAllAssessmentRound(@RequestParam(required = false) String search,
                                                                                            @RequestParam(required = false) Long phaseId,
+                                                                                           @RequestParam(required = false) Long classId,
                                                                                            @ModelAttribute PageRequestDTO request){
-        return new ResponseEntity<>(assessmentRoundsService.getAllAssessmentRound(search, phaseId, request), HttpStatus.OK);
+        return new ResponseEntity<>(assessmentRoundsService.getAllAssessmentRound(search, phaseId, classId, request), HttpStatus.OK);
     }
 
     @GetMapping("/{roundId}")
@@ -43,15 +44,15 @@ public class AssessmentRoundsController {
     }
 
      @PutMapping("/{roundId}")
-     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_UNIVERSITY_REP', 'ROLE_TEACHER')")
      public ResponseEntity<ApiResponse<AssessmentRoundsResponse>> updateAssessmentRound(@PathVariable Long roundId,
-                                                                                        @Valid @RequestBody AssessmentRoundUpdateRequest request) throws ResourceNotFoundException, ResourceConflictException, ResourceBadRequestException {
+                                                                                        @Valid @RequestBody AssessmentRoundUpdateRequest request) throws ResourceNotFoundException, ResourceConflictException, ResourceBadRequestException, pka.edu.exception.ResourceForbiddenException {
          return new ResponseEntity<>(assessmentRoundsService.updateAssessmentRound(roundId, request), HttpStatus.OK);
      }
 
      @DeleteMapping("/{roundId}")
-     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-     public ResponseEntity<ApiResponse<String>> deleteAssessmentRound(@PathVariable Long roundId) throws ResourceNotFoundException {
+     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_UNIVERSITY_REP', 'ROLE_TEACHER')")
+     public ResponseEntity<ApiResponse<String>> deleteAssessmentRound(@PathVariable Long roundId) throws ResourceNotFoundException, pka.edu.exception.ResourceForbiddenException {
          return new ResponseEntity<>(assessmentRoundsService.deleteAssessmentRound(roundId), HttpStatus.OK);
      }
 }

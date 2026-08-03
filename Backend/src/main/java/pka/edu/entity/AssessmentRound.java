@@ -25,6 +25,10 @@ public class AssessmentRound {
     @JoinColumn(name = "phase_id")
     private InternshipPhase phase;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    private UniversityClass universityClass;
+
     @Column(nullable = false)
     private String roundName;
 
@@ -40,6 +44,7 @@ public class AssessmentRound {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    @Builder.Default
     private boolean isDeleted = false;
 
     @CreationTimestamp
@@ -47,7 +52,4 @@ public class AssessmentRound {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "round", cascade = CascadeType.ALL)
-    private List<RoundCriteria> roundCriteriaList;
 }

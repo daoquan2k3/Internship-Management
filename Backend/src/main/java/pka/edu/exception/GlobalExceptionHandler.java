@@ -122,6 +122,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleAllExceptions(Exception ex) {
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Lỗi hệ thống không xác định";
+        ApiResponse<Object> response = ApiResponse.builder()
+                .success(false)
+                .message(msg)
+                .data(null)
+                .error(Map.of("error", msg))
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     // Đào sâu cause chain vi no duoc boc nhieu lop
     private Throwable getRootCause(Throwable throwable) {

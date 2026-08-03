@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { Drawer, Box } from "@mui/material";
+import { Drawer, Box, Toolbar } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,15 +9,26 @@ import { TopBar } from "./TopBar";
 import { LogoutDialog } from "./LogoutDialog";
 import { allMenuItems } from "./navigationConfig";
 
-const drawerWidth = 280;
+const DRAWER_WIDTH = 280;
+const COLLAPSED_WIDTH = 88;
 
 export const AppLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem("sidebarCollapsed");
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  useEffect(() => {
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(isCollapsed));
+  }, [isCollapsed]);
   const [expandedItems, setExpandedItems] = useState({});
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useContext(AuthContext);
+  
+  const drawerWidth = isCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH;
 
   useEffect(() => {
     if (user && user.role !== "ROLE_ADMIN") {
@@ -40,6 +51,10 @@ export const AppLayout = ({ children }) => {
       }
     }
   }, [location.pathname, user, navigate]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   useEffect(() => {
     const currentPath = location.pathname;
@@ -88,7 +103,7 @@ export const AppLayout = ({ children }) => {
 
   const confirmLogout = async () => {
     await logout();
-    window.location.href = "/Internship-Management-System/#/";
+    navigate("/login");
   };
 
   const isActive = (path) => location.pathname === path;
@@ -123,6 +138,8 @@ export const AppLayout = ({ children }) => {
               handleMenuToggle={handleMenuToggle}
               handleNavigate={handleNavigate}
               isActive={isActive}
+              isCollapsed={false}
+              setIsCollapsed={setIsCollapsed}
             />
           </Drawer>
           <Drawer
@@ -133,6 +150,8 @@ export const AppLayout = ({ children }) => {
                 boxSizing: "border-box",
                 width: drawerWidth,
                 borderRight: "1px solid rgba(255, 255, 255, 0.1)",
+                transition: "width 0.3s ease",
+                overflowX: "hidden",
               },
             }}
             open
@@ -143,6 +162,8 @@ export const AppLayout = ({ children }) => {
               handleMenuToggle={handleMenuToggle}
               handleNavigate={handleNavigate}
               isActive={isActive}
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
             />
           </Drawer>
         </Box>
@@ -152,11 +173,12 @@ export const AppLayout = ({ children }) => {
           sx={{
             flexGrow: 1,
             p: { xs: 2, sm: 4 },
-            mt: 8,
             width: { sm: `calc(100% - ${drawerWidth}px)` },
             backgroundColor: "background.default",
+            transition: "width 0.3s ease",
           }}
         >
+          <Toolbar />
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

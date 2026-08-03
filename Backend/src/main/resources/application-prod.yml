@@ -1,7 +1,7 @@
 logging:
   level:
     pka:
-      edu: DEBUG
+      edu: INFO
     root: INFO
 spring:
   data:
@@ -11,21 +11,24 @@ spring:
   rabbitmq:
     port: 5672
     host: rabbitmq
-    username: admin
-    password: admin123
+    username: ${RABBITMQ_USER:admin}
+    password: ${RABBITMQ_PASSWORD:admin123}
   datasource:
     driver-class-name: org.postgresql.Driver
-    password: 123456
-    url: jdbc:postgresql://postgres:5432/internship_db
-    username: postgres
+    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:internship_db}
+    username: ${DB_USERNAME:postgres}
+    hikari:
+      maximum-pool-size: 50
+      connection-timeout: 30000
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    show-sql: true
+        format_sql: false
+    show-sql: false
   servlet:
     multipart:
       max-file-size: 10MB
@@ -51,5 +54,7 @@ rabbitmq:
       notification: notification_routing_key
 
 app:
+  mail:
+    sender: ${MAIL_SENDER:noreply@yourdomain.com}
   frontend:
-    url: "http://localhost:5173/"
+    url: ${FRONTEND_URL}

@@ -22,4 +22,9 @@ public class UserResponse {
 
     private StudentResponse student;
     private MentorResponse mentor;
+    
+    private Long universityId;
+    private String universityName;
+    private Long companyId;
+    private String companyName;
 }

@@ -32,4 +32,10 @@ public class StudentResponse {
     public LocalDate dateOfBirth;
 
     public String address;
+    
+    private String internshipCompany;
+    
+    private String externalMentorName;
+    
+    private String externalMentorPhone;
 }

@@ -29,6 +29,14 @@ public class Report {
     @JoinColumn(name = "student_id")
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "round_id")
+    private AssessmentRound assessmentRound;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    private UniversityClass universityClass;
+
     private String fileUrl;
 
     @Enumerated(EnumType.STRING)

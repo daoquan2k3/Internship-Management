@@ -29,13 +29,60 @@ public class FileUploadService {
         return uploadResult.get("secure_url").toString();
     }
 
-    public String uploadDocument(MultipartFile file) throws IOException {
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap(
-                        "resource_type", "raw",
-                        "folder", "reports"
-                ));
+    public String uploadDocument(MultipartFile file) throws IOException, pka.edu.exception.ResourceBadRequestException {
+        String contentType = file.getContentType();
+        if (contentType == null || !(contentType.equals("application/pdf") ||
+                contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
+                contentType.equals("application/msword") ||
+                contentType.startsWith("image/") ||
+                contentType.contains("zip") ||
+                contentType.contains("octet-stream"))) {
+            throw new pka.edu.exception.ResourceBadRequestException("Only PDF, Word, Archive and Image files are allowed", null);
+        }
 
-        return uploadResult.get("secure_url").toString();
+        java.io.File tempFile = java.io.File.createTempFile("temp-", file.getOriginalFilename());
+        file.transferTo(tempFile);
+        
+        try {
+            Map uploadResult = cloudinary.uploader().upload(tempFile,
+                    ObjectUtils.asMap(
+                            "resource_type", "auto",
+                            "folder", "reports",
+                            "use_filename", true,
+                            "unique_filename", true
+                    ));
+            return uploadResult.get("secure_url").toString();
+        } finally {
+            tempFile.delete();
+        }
+    }
+
+    public String uploadGeneralFile(MultipartFile file, String folderName) throws IOException, pka.edu.exception.ResourceBadRequestException {
+        String contentType = file.getContentType();
+        if (contentType == null || !(contentType.equals("application/pdf") ||
+                contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
+                contentType.equals("application/msword") ||
+                contentType.startsWith("image/") ||
+                contentType.contains("zip") ||
+                contentType.contains("rar") ||
+                contentType.contains("octet-stream"))) {
+            throw new pka.edu.exception.ResourceBadRequestException("Only PDF, Word, Archive and Image files are allowed", null);
+        }
+
+        java.io.File tempFile = java.io.File.createTempFile("temp-", file.getOriginalFilename());
+        file.transferTo(tempFile);
+        
+        try {
+            Map uploadResult = cloudinary.uploader().upload(tempFile,
+                    ObjectUtils.asMap(
+                            "resource_type", "auto",
+                            "folder", folderName != null ? folderName : "documents",
+                            "use_filename", true,
+                            "unique_filename", true
+                    ));
+            return uploadResult.get("secure_url").toString();
+        } finally {
+            tempFile.delete();
+        }
     }
 }

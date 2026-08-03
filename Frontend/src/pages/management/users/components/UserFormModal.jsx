@@ -23,6 +23,8 @@ const UserFormModal = ({
   editingUser,
   formData,
   setFormData,
+  currentUserRole,
+  universities,
 }) => {
   return (
     <Modal
@@ -108,13 +110,16 @@ const UserFormModal = ({
                       onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                       disabled={editingUser !== null}
                     >
-                      <MenuItem value="ROLE_STUDENT">Học sinh</MenuItem>
-                      <MenuItem value="ROLE_MENTOR">Cố vấn</MenuItem>
-                      <MenuItem value="ROLE_ADMIN">Admin</MenuItem>
+                      {currentUserRole !== "ROLE_MENTOR" && <MenuItem value="ROLE_STUDENT">Sinh viên</MenuItem>}
+                      <MenuItem value="ROLE_UNIVERSITY_REP">Đại diện trường</MenuItem>
+                      <MenuItem value="ROLE_TEACHER">Giáo viên</MenuItem>
+                      <MenuItem value="ROLE_COMPANY_REP">Đại diện doanh nghiệp</MenuItem>
+                      <MenuItem value="ROLE_COMPANY_MENTOR">Cố vấn doanh nghiệp</MenuItem>
+                      {currentUserRole !== "ROLE_MENTOR" && <MenuItem value="ROLE_ADMIN">Admin</MenuItem>}
                     </Select>
                   </FormControl>
 
-                  {formData.role === "ROLE_STUDENT" && !editingUser && (
+                  {formData.role === "ROLE_STUDENT" && (
                     <>
                       <TextField
                         fullWidth label="Mã sinh viên"
@@ -132,7 +137,13 @@ const UserFormModal = ({
                         onChange={(e) => setFormData({ ...formData, classRoom: e.target.value })}
                       />
                       <TextField
-                        fullWidth label="Ngày sinh" type="date" InputLabelProps={{ shrink: true }}
+                        fullWidth
+                        label="Ngày sinh"
+                        type={formData.dateOfBirth ? "date" : "text"}
+                        onFocus={(e) => (e.target.type = "date")}
+                        onBlur={(e) => {
+                          if (!e.target.value) e.target.type = "text";
+                        }}
                         value={formData.dateOfBirth}
                         onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                       />
@@ -144,18 +155,44 @@ const UserFormModal = ({
                     </>
                   )}
 
-                  {formData.role === "ROLE_MENTOR" && !editingUser && (
+                  {["ROLE_TEACHER", "ROLE_UNIVERSITY_REP", "ROLE_COMPANY_MENTOR", "ROLE_COMPANY_REP"].includes(formData.role) && (
                     <>
                       <TextField
                         fullWidth label="Phòng ban"
                         value={formData.department}
                         onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                       />
-                      <TextField
-                        fullWidth label="Cấp bậc (Học hàm/Học vị)"
-                        value={formData.academicRank}
-                        onChange={(e) => setFormData({ ...formData, academicRank: e.target.value })}
-                      />
+                      {["ROLE_TEACHER", "ROLE_UNIVERSITY_REP"].includes(formData.role) && (
+                        <>
+                          <FormControl fullWidth>
+                            <InputLabel>Cơ sở đào tạo</InputLabel>
+                            <Select
+                              value={formData.universityId || ""}
+                              label="Cơ sở đào tạo"
+                              onChange={(e) => setFormData({ ...formData, universityId: e.target.value })}
+                            >
+                              <MenuItem value=""><em>Chọn cơ sở đào tạo</em></MenuItem>
+                              {universities?.map((uni) => (
+                                <MenuItem key={uni.universityId} value={uni.universityId}>
+                                  {uni.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <TextField
+                            fullWidth label="Cấp bậc (Học hàm/Học vị)"
+                            value={formData.academicRank}
+                            onChange={(e) => setFormData({ ...formData, academicRank: e.target.value })}
+                          />
+                        </>
+                      )}
+                      {["ROLE_COMPANY_MENTOR", "ROLE_COMPANY_REP"].includes(formData.role) && (
+                        <TextField
+                          fullWidth label="Chức vụ"
+                          value={formData.position}
+                          onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                        />
+                      )}
                     </>
                   )}
                 </Stack>

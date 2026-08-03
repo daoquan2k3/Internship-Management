@@ -11,12 +11,15 @@ import {
   Stack,
   Avatar,
   Chip,
-  Divider
+  Divider,
+  IconButton
 } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 
 import StudentFormModal from "./components/StudentFormModal";
+import ConfirmDeleteModal from "../../../components/common/ConfirmDeleteModal";
 
 const StudentsManagement = () => {
   const [data, setData] = useState([]);
@@ -28,6 +31,9 @@ const StudentsManagement = () => {
   
   const [openModal, setOpenModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+  
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState(null);
   
   const [formData, setFormData] = useState({
     userId: "",
@@ -146,6 +152,31 @@ const StudentsManagement = () => {
     }
   };
 
+  const handleOpenDeleteModal = (student) => {
+    setStudentToDelete(student);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setOpenDeleteModal(false);
+    setStudentToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!studentToDelete) return;
+    try {
+      setLoading(true);
+      await studentApi.deleteStudent(studentToDelete.studentId);
+      toast.success("Xóa sinh viên thành công!");
+      handleCloseDeleteModal();
+      fetchStudents();
+    } catch (err) {
+      console.error("Lỗi khi xóa sinh viên:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ p: 4, minHeight: '100vh', backgroundColor: "background.default" }}>
       
@@ -187,7 +218,11 @@ const StudentsManagement = () => {
       </Paper>
 
       {/* --- 3D CARD LIST --- */}
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'flex-start' }}>
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
+        gap: 4 
+      }}>
         <AnimatePresence>
           {data.map((student, index) => (
             <motion.div
@@ -197,7 +232,7 @@ const StudentsManagement = () => {
               exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
               whileHover={{ scale: 1.03, y: -5 }}
-              style={{ flex: '1 1 300px', maxWidth: '350px' }}
+              style={{ height: '100%' }}
             >
               <Paper
                 sx={{ 
@@ -232,10 +267,10 @@ const StudentsManagement = () => {
                   </Box>
                 </Stack>
 
-                <Stack direction="row" spacing={1} sx={{ mb: 2, position: 'relative', zIndex: 1 }}>
-                  {student.classRoom && <Chip label={`Lớp: ${student.classRoom}`} size="small" color="info" variant="outlined" />}
-                  {student.major && <Chip label={`Ngành học: ${student.major}`} size="small" color="success" variant="outlined" />}
-                </Stack>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2, position: 'relative', zIndex: 1 }}>
+                  {student.classRoom && <Chip label={`Lớp: ${student.classRoom}`} size="small" color="info" variant="outlined" sx={{ maxWidth: '100%' }} />}
+                  {student.major && <Chip label={`Ngành học: ${student.major}`} size="small" color="success" variant="outlined" sx={{ maxWidth: '100%' }} />}
+                </Box>
 
                 <Stack spacing={1} sx={{ position: 'relative', zIndex: 1, mb: 3, flexGrow: 1 }}>
                   <Typography variant="body2"><strong>ID:</strong> {student.studentId || 'N/A'}</Typography>
@@ -247,18 +282,24 @@ const StudentsManagement = () => {
 
                 <Divider sx={{ mb: 2 }} />
 
-                <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                <Stack direction="row" justifyContent="space-between" sx={{ position: 'relative', zIndex: 1 }}>
                   <Button 
                     startIcon={<EditIcon />} 
                     size="small" 
-                    variant="contained"
                     color="primary"
                     onClick={() => handleOpenModal(student)}
-                    sx={{ borderRadius: 2, boxShadow: 0 }}
+                    sx={{ borderRadius: 2 }}
                   >
                     Chỉnh sửa
                   </Button>
-                </Box>
+                  <IconButton 
+                    size="small" 
+                    color="error" 
+                    onClick={() => handleOpenDeleteModal(student)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Stack>
               </Paper>
             </motion.div>
           ))}
@@ -284,6 +325,19 @@ const StudentsManagement = () => {
         formData={formData}
         setFormData={setFormData}
         onSave={handleSave}
+      />
+
+      {/* --- ALERT MODAL XÁC NHẬN XÓA SINH VIÊN --- */}
+      <ConfirmDeleteModal
+        open={openDeleteModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận xóa sinh viên?"
+        content={
+          <>
+            Bạn có chắc chắn muốn xóa sinh viên <strong>{studentToDelete?.fullName || 'này'}</strong>? Hành động này không thể hoàn tác.
+          </>
+        }
       />
     </Box>
   );

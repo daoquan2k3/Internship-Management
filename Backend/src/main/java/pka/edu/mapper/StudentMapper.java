@@ -19,6 +19,9 @@ public class StudentMapper {
                 .fullName(student.getUser().getFullName())
                 .email(student.getUser().getEmail())
                 .phoneNumber(student.getUser().getPhoneNumber())
+                .internshipCompany(student.getInternshipCompany())
+                .externalMentorName(student.getExternalMentorName())
+                .externalMentorPhone(student.getExternalMentorPhone())
                 .build();
     }
 

@@ -31,12 +31,14 @@ public class InternshipAssignmentController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_UNIVERSITY_REP', 'ROLE_TEACHER', 'ROLE_COMPANY_REP')")
     public ResponseEntity<PageResponseDTO<InternshipAssignmentResponse>> getAllInternshipAssignments(@RequestParam(required = false) String search,
                                                                                                      @ModelAttribute PageRequestDTO pageRequestDTO) throws ResourceNotFoundException, ResourceForbiddenException {
         return new ResponseEntity<>(internshipAssignmentService.getAllInternshipAssignment(search, pageRequestDTO), HttpStatus.OK);
     }
 
     @GetMapping("/{assignmentId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<InternshipAssignmentResponse>> getInternshipAssignmentById(@PathVariable Long assignmentId) throws ResourceNotFoundException, ResourceForbiddenException {
         return new ResponseEntity<>(internshipAssignmentService.getInternshipAssignmentById(assignmentId), HttpStatus.OK);
     }

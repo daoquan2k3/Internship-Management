@@ -23,9 +23,19 @@ public class UserMapper {
 
         if (users.getRole() == Role.ROLE_STUDENT && users.getStudent() != null) {
             response.setStudent(StudentMapper.toDto(users.getStudent()));
-        } else if (users.getRole() == Role.ROLE_MENTOR && users.getMentor() != null) {
+        } else if ((users.getRole() == Role.ROLE_MENTOR || users.getRole() == Role.ROLE_COMPANY_MENTOR) && users.getMentor() != null) {
             response.setMentor(MentorMapper.toDto(users.getMentor()));
         }
+        
+        if (users.getUniversity() != null) {
+            response.setUniversityId(users.getUniversity().getUniversityId());
+            response.setUniversityName(users.getUniversity().getUniversityName());
+        }
+        if (users.getCompany() != null) {
+            response.setCompanyId(users.getCompany().getCompanyId());
+            response.setCompanyName(users.getCompany().getCompanyName());
+        }
+        
         return response;
     }
 

@@ -24,7 +24,5 @@ public class AssessmentRoundsResponse {
     private LocalDate endDate;
     private String description;
 
-    private List<RoundCriterionResponse> roundCriteria;
-
     private Boolean isDeleted;
 }

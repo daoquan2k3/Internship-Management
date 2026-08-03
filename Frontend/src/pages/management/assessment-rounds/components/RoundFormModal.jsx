@@ -22,8 +22,10 @@ const RoundFormModal = ({
   formData,
   setFormData,
   onSave,
-  allCriteria
+  teacherClasses,
+  user
 }) => {
+  const isTeacher = user?.role === "TEACHER" || user?.role === "ROLE_TEACHER";
   return (
     <Modal open={open} onClose={onClose} closeAfterTransition sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
       <AnimatePresence>
@@ -50,47 +52,22 @@ const RoundFormModal = ({
                     <TextField fullWidth label="Ngày kết thúc" type={formData.endDate ? "date" : "text"} value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} onFocus={(e) => (e.target.type = "date")} onBlur={(e) => { if (!formData.endDate) e.target.type = "text"; }} />
                   </Stack>
 
-                  <TextField fullWidth label="Mã giai đoạn (Phase ID)" value={formData.phaseId} onChange={(e) => setFormData({ ...formData, phaseId: e.target.value })} />
-
-                  {/* Vùng Chọn Tiêu chí */}
-                  <Box sx={{ bgcolor: "background.paper", p: 2, borderRadius: 2, border: "1px solid #e0e0e0" }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "text.primary", mb: 1 }}>Chọn Tiêu chí & Nhập Trọng số</Typography>
-                    <Autocomplete
-                      multiple options={allCriteria} getOptionLabel={(o) => o.criterionName} isOptionEqualToValue={(option, value) => option.criterionId === value.criterionId}
-                      value={formData.roundCriteria}
-                      onChange={(event, newValue) => {
-                        const updated = newValue.map((item) => {
-                          const currentId = item.id || item.criterionId;
-                          const existing = formData.roundCriteria.find((old) => (old.id || old.criterionId) === currentId);
-                          return { criterionId: currentId, criterionName: item.criterionName, maxScore: item.maxScore, weight: existing ? existing.weight : 0 };
-                        });
-                        setFormData({ ...formData, roundCriteria: updated });
-                      }}
-                      renderInput={(params) => <TextField {...params} placeholder="Tìm kiếm tiêu chí..." sx={{ bgcolor: 'white', borderRadius: 1 }} />}
-                    />
-
-                    {/* Hiển thị list input nhập trọng số đẹp mắt (Thay Table bằng Stack) */}
-                    {formData.roundCriteria.length > 0 && (
-                      <Stack spacing={1.5} sx={{ mt: 2 }}>
-                        {formData.roundCriteria.map((item, index) => (
-                          <Box key={item.criterionId} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'white', p: 1.5, borderRadius: 2, border: '1px solid #eee' }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600, flex: 1, pr: 2 }}>{item.criterionName}</Typography>
-                            <TextField
-                              type="number" size="small" placeholder="Trọng số (%)" sx={{ width: 100 }} value={item.weight ?? ""}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setFormData(prev => {
-                                  const nextCriteria = [...prev.roundCriteria];
-                                  nextCriteria[index] = { ...nextCriteria[index], weight: val };
-                                  return { ...prev, roundCriteria: nextCriteria };
-                                });
-                              }}
-                            />
-                          </Box>
-                        ))}
-                      </Stack>
+                  <Stack direction="row" spacing={2}>
+                    <TextField fullWidth label="Mã giai đoạn (Phase ID)" value={formData.phaseId} onChange={(e) => setFormData({ ...formData, phaseId: e.target.value })} />
+                    {isTeacher && (
+                      <Autocomplete
+                        fullWidth
+                        options={teacherClasses || []}
+                        getOptionLabel={(option) => option.className || `Class ID: ${option.classId}`}
+                        isOptionEqualToValue={(option, value) => option.classId === value?.classId || option.classId === value}
+                        value={(teacherClasses || []).find(c => c.classId === formData.classId) || null}
+                        onChange={(event, newValue) => {
+                          setFormData({ ...formData, classId: newValue ? newValue.classId : "" });
+                        }}
+                        renderInput={(params) => <TextField {...params} label="Lớp học phụ trách" />}
+                      />
                     )}
-                  </Box>
+                  </Stack>
 
                   {/* Switch Trạng thái */}
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: "background.paper", border: "1px solid #e0e0e0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>

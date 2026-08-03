@@ -57,7 +57,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR', 'ROLE_STUDENT')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserResponse>> getMyProfile(Authentication authentication) throws ResourceConflictException, ResourceNotFoundException {
         String username = authentication.getName();
         ApiResponse<UserResponse> response = authService.getMyProfile(username);
@@ -65,7 +65,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR', 'ROLE_STUDENT')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<String>> logout(
             @CookieValue(value = "refreshToken", required = false) String refreshToken,
             @RequestHeader(value = "Authorization", required = false) String authHeader

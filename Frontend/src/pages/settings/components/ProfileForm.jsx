@@ -86,12 +86,26 @@ export const ProfileForm = ({
                   "& .MuiOutlinedInput-root": { bgcolor: "background.paper", borderRadius: 3 },
                 }}
               />
+              <Divider sx={{ my: 2, borderStyle: 'dashed' }}>Thông tin Người hướng dẫn (Tại DN)</Divider>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, px: 1 }}>
+                * Nếu bạn thực tập tại công ty hệ thống, hệ thống sẽ tự động điền thông tin này khi được phân bổ.
+              </Typography>
+              <TextField 
+                fullWidth 
+                label="Tên Người hướng dẫn (tại DN)" 
+                {...regProfile("externalMentorName")} 
+              />
+              <TextField 
+                fullWidth 
+                label="SĐT Người hướng dẫn (tại DN)" 
+                {...regProfile("externalMentorPhone")} 
+              />
             </>
           )}
 
           {profileData?.role?.includes("MENTOR") && (
             <>
-              <Divider sx={{ my: 2 }}>Thông tin Giảng viên</Divider>
+              <Divider sx={{ my: 2 }}>{profileData?.role === "ROLE_COMPANY_MENTOR" ? "Thông tin Cố vấn" : "Thông tin Giảng viên"}</Divider>
               <TextField
                 fullWidth
                 label="Khoa / Phòng ban (*)"
@@ -102,6 +116,19 @@ export const ProfileForm = ({
               <TextField fullWidth label="Học hàm / Học vị" {...regProfile("academicRank")} />
             </>
           )}
+
+          {(profileData?.universityName || profileData?.companyName) && (
+            <>
+              <Divider sx={{ my: 2 }}>Thông tin Đơn vị trực thuộc</Divider>
+              {profileData?.universityName && (
+                <TextField fullWidth label="Trường Đại học" value={profileData.universityName} disabled />
+              )}
+              {profileData?.companyName && (
+                <TextField fullWidth label="Doanh nghiệp" value={profileData.companyName} disabled />
+              )}
+            </>
+          )}
+          
           <Button
             type="submit"
             variant="contained"

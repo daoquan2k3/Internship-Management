@@ -27,18 +27,19 @@ public class UserController {
     private final IUserService userService;
 
     @GetMapping("/profiles")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_UNIVERSITY_REP', 'ROLE_COMPANY_REP', 'ROLE_MENTOR')")
     public ResponseEntity<PageResponseDTO<UserResponse>> getAllProfile(@RequestParam(required = false) String role,
+            @RequestParam(required = false) String search,
             @ModelAttribute PageRequestDTO pageRequestDTO)
-            throws ResourceBadRequestException, ResourceConflictException {
-        return new ResponseEntity<>(userService.getAllProfile(role, pageRequestDTO), HttpStatus.OK);
+            throws ResourceBadRequestException, ResourceConflictException, ResourceForbiddenException {
+        return new ResponseEntity<>(userService.getAllProfile(role, search, pageRequestDTO), HttpStatus.OK);
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR')")
     public ResponseEntity<ApiResponse<UserResponse>> createProfile(
             @Valid @RequestBody UserCreateRequest userCreateRequest)
-            throws ResourceBadRequestException, ResourceConflictException {
+            throws ResourceBadRequestException, ResourceConflictException, ResourceForbiddenException {
         return new ResponseEntity<>(userService.createProfile(userCreateRequest), HttpStatus.CREATED);
     }
 
@@ -50,7 +51,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR', 'ROLE_STUDENT')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequest userUpdateRequest)
             throws ResourceConflictException, ResourceNotFoundException, ResourceForbiddenException {
@@ -58,14 +59,14 @@ public class UserController {
     }
 
     @PutMapping("/{userId}/status")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR')")
     public ResponseEntity<ApiResponse<UserResponse>> updateStatus(@PathVariable Long userId)
-            throws ResourceConflictException, ResourceNotFoundException {
+            throws ResourceConflictException, ResourceNotFoundException, ResourceForbiddenException {
         return new ResponseEntity<>(userService.updateStatus(userId), HttpStatus.OK);
     }
 
     @PutMapping("/{userId}/role")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR')")
     public ResponseEntity<ApiResponse<UserResponse>> updateRole(@PathVariable Long userId,
             @Valid @RequestBody UpdateRoleRequest request) throws ResourceConflictException, ResourceNotFoundException,
             ResourceForbiddenException, ResourceBadRequestException {
@@ -73,15 +74,15 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR')")
     public ResponseEntity<ApiResponse<String>> deleteProfile(@PathVariable Long userId)
-            throws ResourceConflictException, ResourceNotFoundException {
+            throws ResourceConflictException, ResourceNotFoundException, ResourceForbiddenException {
         return new ResponseEntity<>(userService.deleteProfile(userId), HttpStatus.OK);
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<ApiResponse<String>> changePassword(@Valid @RequestBody ChangePasswordRequest request)
-            throws ResourceBadRequestException {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<String>> changePassword(@Valid @RequestBody ChangePasswordRequest request) throws ResourceBadRequestException {
         if (!request.getConfirmPassword().equals(request.getNewPassword())) {
             return ResponseEntity.badRequest().body(new ApiResponse<>(
                     null,
@@ -94,7 +95,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}/avatar")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR', 'ROLE_STUDENT')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<String>> uploadAvatar(
             @PathVariable Long userId,
             @RequestParam("file") MultipartFile file) throws Exception {

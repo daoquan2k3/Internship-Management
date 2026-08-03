@@ -98,6 +98,8 @@ const SettingsPage = () => {
         classRoom: res.data.student?.classRoom || "",
         address: res.data.student?.address || "",
         dateOfBirth: formatToISO(res.data.student?.dateOfBirth) || "",
+        externalMentorName: res.data.student?.externalMentorName || "",
+        externalMentorPhone: res.data.student?.externalMentorPhone || "",
         department: res.data.mentor?.department || "",
         academicRank: res.data.mentor?.academicRank || "",
       });
@@ -259,6 +261,29 @@ const SettingsPage = () => {
                   <Grid item xs={12} sm={6}>
                     <BentoCard icon={<StarBorder />} label="Học hàm / Học vị" value={profileData?.mentor?.academicRank} />
                   </Grid>
+                </Grid>
+              </>
+            )}
+
+            {(profileData?.universityName || profileData?.companyName) && (
+              <>
+                <Divider sx={{ my: 4, "&::before, &::after": { borderColor: "divider" } }}>
+                  <Chip
+                    label="Thông tin Đơn vị trực thuộc"
+                    sx={{ fontWeight: 700, color: "text.primary", bgcolor: "action.hover", letterSpacing: "0.5px" }}
+                  />
+                </Divider>
+                <Grid container spacing={2.5}>
+                  {profileData?.universityName && (
+                    <Grid item xs={12} sm={6}>
+                      <BentoCard icon={<SchoolOutlined />} label="Trường Đại học" value={profileData.universityName} />
+                    </Grid>
+                  )}
+                  {profileData?.companyName && (
+                    <Grid item xs={12} sm={6}>
+                      <BentoCard icon={<BusinessOutlined />} label="Doanh nghiệp" value={profileData.companyName} />
+                    </Grid>
+                  )}
                 </Grid>
               </>
             )}

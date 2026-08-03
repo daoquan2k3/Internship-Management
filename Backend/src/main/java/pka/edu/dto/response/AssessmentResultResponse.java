@@ -19,8 +19,6 @@ public class AssessmentResultResponse {
     private Long roundId;
     private String roundName;
 
-    private Long criterionId;
-    private String criterionName;
 
     private BigDecimal score;
     private String comments;

@@ -19,7 +19,8 @@ public class AssessmentResultCreateRequest {
     @NotNull(message = "Round ID is required")
     private Long roundId;
 
-    @Valid
-    @NotNull(message = "Results cannot be null")
-    private List<CriterionScoreRequest> results;
+    @NotNull(message = "Score is required")
+    private java.math.BigDecimal score;
+
+    private String comments;
 }

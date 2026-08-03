@@ -3,9 +3,10 @@ package pka.edu.controller;
 import pka.edu.dto.response.ApiResponse;
 import pka.edu.dto.response.DashboardStatsResponse;
 import pka.edu.dto.response.MentorStatsResponse;
+import pka.edu.dto.response.RepStatsResponse;
 import pka.edu.dto.response.StudentStatsResponse;
 import pka.edu.exception.ResourceNotFoundException;
-import pka.edu.service.DashboardService;
+import pka.edu.service.IDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,7 @@ import java.time.LocalDateTime;
 @CrossOrigin(origins = "*")
 public class DashboardController {
 
-    private final DashboardService dashboardService;
+    private final IDashboardService dashboardService;
 
     @GetMapping("/stats")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -38,7 +39,7 @@ public class DashboardController {
     }
 
     @GetMapping("/mentor-stats")
-    @PreAuthorize("hasAuthority('ROLE_MENTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_MENTOR', 'ROLE_TEACHER', 'ROLE_COMPANY_MENTOR', 'ROLE_UNIVERSITY_REP', 'ROLE_COMPANY_REP')")
     public ResponseEntity<ApiResponse<MentorStatsResponse>> getMentorStats(Principal principal) throws ResourceNotFoundException {
         MentorStatsResponse stats = dashboardService.getMentorStats(principal.getName());
 
@@ -54,6 +55,16 @@ public class DashboardController {
 
         return ResponseEntity.ok(new ApiResponse<>(
                 stats, true, "Lấy thống kê Student thành công", null, LocalDateTime.now()
+        ));
+    }
+
+    @GetMapping("/rep-stats")
+    @PreAuthorize("hasAnyAuthority('ROLE_UNIVERSITY_REP', 'UNIVERSITY_REP')")
+    public ResponseEntity<ApiResponse<RepStatsResponse>> getRepStats(Principal principal) throws ResourceNotFoundException {
+        RepStatsResponse stats = dashboardService.getRepStats(principal.getName());
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                stats, true, "Lấy thống kê Đại diện trường thành công", null, LocalDateTime.now()
         ));
     }
 }

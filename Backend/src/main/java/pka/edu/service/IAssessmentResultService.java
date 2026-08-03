@@ -14,7 +14,7 @@ import pka.edu.exception.ResourceNotFoundException;
 import java.util.List;
 
 public interface IAssessmentResultService {
-    ApiResponse<List<AssessmentResultResponse>> createAssessmentResult(AssessmentResultCreateRequest request) throws ResourceNotFoundException, ResourceForbiddenException, ResourceConflictException;
+    ApiResponse<AssessmentResultResponse> createAssessmentResult(AssessmentResultCreateRequest request) throws ResourceNotFoundException, ResourceForbiddenException, ResourceConflictException;
 
     PageResponseDTO<AssessmentResultResponse> getAllAssessmentResult(String search, Long assignmentId, PageRequestDTO requestDTO) throws ResourceNotFoundException, ResourceForbiddenException;
 

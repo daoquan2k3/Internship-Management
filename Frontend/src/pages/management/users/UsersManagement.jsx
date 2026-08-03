@@ -1,14 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../../../context/AuthContext";
 import { userApi } from "../../../api/resourceApi";
+import { universityApi } from "../../../api/universityApi";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Box, Button, FormControl, InputLabel, Select, MenuItem,
-  Paper, Typography, Stack, Avatar, Chip, Divider, IconButton
+  Paper, Typography, Stack, Avatar, Chip, Divider, IconButton, TextField, InputAdornment
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 
 import UserFormModal from "./components/UserFormModal";
 import ConfirmDeleteModal from "../../../components/common/ConfirmDeleteModal";
@@ -39,6 +43,16 @@ const UserCard = ({ user, index, onEdit, onDelete, getRoleColor, getRoleLabel })
       <Stack spacing={1.5} sx={{ position: "relative", zIndex: 1, mb: 3 }}>
         <Typography variant="body2"><strong>Email:</strong> {user.email}</Typography>
         <Typography variant="body2"><strong>SĐT:</strong> {user.phoneNumber}</Typography>
+        {(user.universityName || user.universityId) && (
+          <Typography variant="body2" sx={{ color: "#00897b", fontWeight: 600 }}>
+            🏫 Trường: {user.universityName || `ID: ${user.universityId}`}
+          </Typography>
+        )}
+        {(user.companyName || user.companyId) && (
+          <Typography variant="body2" sx={{ color: "#7b1fa2", fontWeight: 600 }}>
+            🏢 Doanh nghiệp: {user.companyName || `ID: ${user.companyId}`}
+          </Typography>
+        )}
         <Box><Chip label={getRoleLabel(user.role)} color={getRoleColor(user.role)} size="small" sx={{ fontWeight: "bold" }} /></Box>
       </Stack>
       <Divider sx={{ mb: 2 }} />
@@ -58,6 +72,10 @@ const UsersManagement = () => {
   const [page, setPage] = useState(0);
   const rowsPerPage = 10;
   const [role, setRole] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [search, setSearch] = useState("");
+  const { user: currentUser } = useContext(AuthContext);
+  const [universities, setUniversities] = useState([]);
 
   const [openModal, setOpenModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -66,28 +84,41 @@ const UsersManagement = () => {
   const [userToDelete, setUserToDelete] = useState(null);
 
   const [formData, setFormData] = useState({
-    username: "", email: "", fullName: "", phoneNumber: "", role: "ROLE_STUDENT",
+    username: "", email: "", fullName: "", phoneNumber: "",
+    role: currentUser?.role === "ROLE_MENTOR" ? "ROLE_TEACHER" : "ROLE_STUDENT",
     password: "", studentCode: "", major: "", classRoom: "", dateOfBirth: "",
-    address: "", department: "", academicRank: "",
+    address: "", department: "", academicRank: "", position: "",
+    universityId: null, companyId: null,
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchTerm);
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     let isMounted = true;
     const fetchUsers = async () => {
       try {
-        const response = await userApi.getAllUsers(role, page, rowsPerPage, "");
+        const response = await userApi.getAllUsers(role, page, rowsPerPage, search);
         if (isMounted) setData(response?.content || []);
+        
+        const uniRes = await universityApi.getAllUniversities(1, 100);
+        if (isMounted) setUniversities(uniRes?.content || []);
       } catch (err) {
         console.error("Error fetching users:", err);
       }
     };
     fetchUsers();
     return () => { isMounted = false; };
-  }, [role, page, rowsPerPage]);
+  }, [role, page, rowsPerPage, search]);
 
   const fetchUsers = async () => {
     try {
-      const response = await userApi.getAllUsers(role, page, rowsPerPage, "");
+      const response = await userApi.getAllUsers(role, page, rowsPerPage, search);
       setData(response?.content || []);
     } catch (err) {
       console.error("Error fetching users:", err);
@@ -100,13 +131,24 @@ const UsersManagement = () => {
       setFormData({
         username: user.username, email: user.email, fullName: user.fullName,
         phoneNumber: user.phoneNumber, role: user.role,
+        universityId: user.universityId || null, companyId: user.companyId || null,
+        studentCode: user.student?.studentCode || "",
+        major: user.student?.major || "",
+        classRoom: user.student?.classRoom || "",
+        dateOfBirth: user.student?.dateOfBirth || "",
+        address: user.student?.address || "",
+        department: user.mentor?.department || "",
+        academicRank: user.mentor?.academicRank || "",
+        position: user.mentor?.position || "",
       });
     } else {
       setEditingUser(null);
       setFormData({
-        username: "", email: "", fullName: "", phoneNumber: "", role: "ROLE_STUDENT",
+        username: "", email: "", fullName: "", phoneNumber: "",
+        role: currentUser?.role === "ROLE_MENTOR" ? "ROLE_TEACHER" : "ROLE_STUDENT",
         password: "", studentCode: "", major: "", classRoom: "", dateOfBirth: "",
-        address: "", department: "", academicRank: "",
+        address: "", department: "", academicRank: "", position: "",
+        universityId: null, companyId: null,
       });
     }
     setOpenModal(true);
@@ -147,14 +189,21 @@ const UsersManagement = () => {
 
   const getRoleColor = (userRole) => {
     if (userRole === "ROLE_ADMIN") return "error";
-    if (userRole === "ROLE_MENTOR") return "warning";
+    if (userRole === "ROLE_UNIVERSITY_REP") return "secondary";
+    if (userRole === "ROLE_COMPANY_REP") return "info";
+    if (userRole === "ROLE_TEACHER") return "success";
+    if (userRole === "ROLE_COMPANY_MENTOR" || userRole === "ROLE_MENTOR") return "warning";
     return "primary";
   };
 
   const getRoleLabel = (userRole) => {
     if (userRole === "ROLE_ADMIN") return "Admin";
+    if (userRole === "ROLE_UNIVERSITY_REP") return "Đại diện trường";
+    if (userRole === "ROLE_COMPANY_REP") return "Đại diện DN";
+    if (userRole === "ROLE_TEACHER") return "Giáo viên";
+    if (userRole === "ROLE_COMPANY_MENTOR") return "Cố vấn DN";
     if (userRole === "ROLE_MENTOR") return "Cố vấn";
-    return "Học sinh";
+    return "Sinh viên";
   };
 
   return (
@@ -165,20 +214,46 @@ const UsersManagement = () => {
           <Typography variant="h4" sx={{ fontWeight: 800, color: "primary.light", letterSpacing: "-0.5px" }}>Quản lý người dùng</Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>Hệ thống quản lý thông tin và tài khoản</Typography>
         </Box>
-        <Button variant="contained" size="large" startIcon={<PersonAddAlt1Icon />} onClick={() => handleOpenModal()} sx={{ borderRadius: "50px", px: 4, py: 1.5, boxShadow: "0 8px 16px rgba(26, 35, 126, 0.2)" }}>
-          Thêm người dùng
-        </Button>
+        {currentUser?.role !== "ROLE_COMPANY_REP" && (
+          <Button variant="contained" size="large" startIcon={<PersonAddAlt1Icon />} onClick={() => handleOpenModal()} sx={{ borderRadius: "50px", px: 4, py: 1.5, boxShadow: "0 8px 16px rgba(26, 35, 126, 0.2)" }}>
+            Thêm người dùng
+          </Button>
+        )}
       </Box>
 
       {/* FILTER & SEARCH */}
-      <Paper sx={{ p: 2, mb: 4, borderRadius: 4, display: "flex", alignItems: "center", gap: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+      <Paper sx={{ p: 2.5, mb: 4, borderRadius: 4, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+        <TextField
+          size="small"
+          placeholder="Tìm kiếm theo Trường học, Công ty, Tên, Email..."
+          value={searchTerm}
+          onChange={(e) => { setSearchTerm(e.target.value); }}
+          sx={{ flex: "1 1 320px" }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+            endAdornment: searchTerm && (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => { setSearchTerm(""); setSearch(""); setPage(0); }}>
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
         <FormControl sx={{ minWidth: 220 }} size="small">
           <InputLabel>Lọc theo vai trò</InputLabel>
           <Select value={role} label="Lọc theo vai trò" onChange={(e) => { setRole(e.target.value); setPage(0); }} sx={{ borderRadius: 2 }}>
             <MenuItem value="">Tất cả vai trò</MenuItem>
-            <MenuItem value="ROLE_ADMIN">Admin</MenuItem>
-            <MenuItem value="ROLE_MENTOR">Cố vấn</MenuItem>
-            <MenuItem value="ROLE_STUDENT">Học sinh</MenuItem>
+            {currentUser?.role !== "ROLE_MENTOR" && currentUser?.role !== "ROLE_COMPANY_REP" && <MenuItem value="ROLE_ADMIN">Admin</MenuItem>}
+            {currentUser?.role !== "ROLE_COMPANY_REP" && <MenuItem value="ROLE_UNIVERSITY_REP">Đại diện trường</MenuItem>}
+            {currentUser?.role !== "ROLE_COMPANY_REP" && <MenuItem value="ROLE_TEACHER">Giáo viên</MenuItem>}
+            <MenuItem value="ROLE_COMPANY_REP">Đại diện doanh nghiệp</MenuItem>
+            <MenuItem value="ROLE_COMPANY_MENTOR">Cố vấn doanh nghiệp</MenuItem>
+            {currentUser?.role !== "ROLE_MENTOR" && <MenuItem value="ROLE_STUDENT">Sinh viên</MenuItem>}
           </Select>
         </FormControl>
       </Paper>
@@ -200,7 +275,16 @@ const UsersManagement = () => {
       </Box>
 
       {/* MODALS */}
-      <UserFormModal open={openModal} onClose={handleCloseModal} onSave={handleSave} editingUser={editingUser} formData={formData} setFormData={setFormData} />
+      <UserFormModal
+        open={openModal}
+        onClose={handleCloseModal}
+        onSave={handleSave}
+        editingUser={editingUser}
+        formData={formData}
+        setFormData={setFormData}
+        currentUserRole={currentUser?.role}
+        universities={universities}
+      />
 
       <ConfirmDeleteModal
         open={openDeleteModal}

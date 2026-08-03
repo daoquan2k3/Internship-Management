@@ -5,7 +5,7 @@ import pka.edu.dto.request.ResetPasswordRequest;
 import pka.edu.entity.User;
 import pka.edu.exception.InvalidCredentialsException;
 import pka.edu.exception.ResourceNotFoundException;
-import pka.edu.repository.IUserRepository;
+import pka.edu.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,7 +21,7 @@ public class PasswordResetService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final PasswordEncoder passwordEncoder;
-    private final IUserRepository userRepository;
+    private final UserRepository userRepository;
 
     private static final String REDIS_PREFIX = "forgot_password_token:";
     private final EmailService emailService;

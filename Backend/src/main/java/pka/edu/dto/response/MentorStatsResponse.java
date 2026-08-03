@@ -14,4 +14,10 @@ public class MentorStatsResponse {
     private long totalStudents;
     private long pendingReports;
     private double completionRate;
+    private long totalTeachers;
+    private long totalUniReps;
+    private long totalUniversities;
+    private long totalClasses;
+    private long totalCompanyReps;
+    private long totalCompanyMentors;
 }

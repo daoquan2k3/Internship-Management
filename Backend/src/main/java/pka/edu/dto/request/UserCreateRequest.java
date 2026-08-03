@@ -47,7 +47,11 @@ public class UserCreateRequest {
     public LocalDate dateOfBirth;
     private String address;
 
-    // Optional fields for Mentor
+    // Optional fields for Professional Profile (Mentor Entity)
     private String department;
     private String academicRank;
+    private String position;
+    
+    private Long universityId;
+    private Long companyId;
 }

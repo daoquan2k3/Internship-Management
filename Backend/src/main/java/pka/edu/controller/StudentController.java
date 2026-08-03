@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,17 +32,19 @@ public class StudentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR', 'ROLE_COMPANY_MENTOR', 'ROLE_TEACHER', 'ROLE_COMPANY_REP')")
     public ResponseEntity<PageResponseDTO<StudentResponse>> getAllStudent(@RequestParam(required = false) String search, @ModelAttribute PageRequestDTO page) throws ResourceNotFoundException, ResourceForbiddenException {
         return new ResponseEntity<>(studentService.getAllStudent(page, search), HttpStatus.OK);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<StudentResponse>> getCurrentStudentInfo() throws ResourceNotFoundException, ResourceForbiddenException {
+    @PreAuthorize("hasAuthority('ROLE_STUDENT')")
+    public ResponseEntity<ApiResponse<StudentResponse>> getCurrentStudentInfo(Authentication authentication) throws ResourceNotFoundException, ResourceForbiddenException {
         return new ResponseEntity<>(studentService.getCurrentStudentInfo(), HttpStatus.OK);
     }
 
     @GetMapping("/{studentId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<StudentResponse>> getStudentById(@PathVariable Long studentId) throws ResourceNotFoundException, ResourceForbiddenException {
         return new ResponseEntity<>(studentService.getStudentById(studentId), HttpStatus.OK);
     }

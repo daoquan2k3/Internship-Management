@@ -18,24 +18,28 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const MainDashboard = lazy(() => import("./pages/MainDashboard"));
 const SettingsPage = lazy(() => import("./pages/settings/SettingsPage"));
 
-// Mentor & Student
-const AssignedMentor = lazy(() => import("./pages/mentors/AssignedMentor"));
-const AssignedStudents = lazy(() => import("./pages/students/AssignedStudents"));
-const StudentReportSubmit = lazy(() => import("./pages/students/StudentReportSubmit"));
+// Student & Teacher
+const MyMentor = lazy(() => import("./pages/student/MyMentor"));
+const MyStudents = lazy(() => import("./pages/teacher/MyStudents"));
+const StudentWorkflow = lazy(() => import("./pages/student/StudentWorkflow"));
 
 // Management Pages
 const UsersManagement = lazy(() => import("./pages/management/users/UsersManagement"));
 const StudentsManagement = lazy(() => import("./pages/management/students/StudentsManagement"));
 const MentorsManagement = lazy(() => import("./pages/management/mentors/MentorsManagement"));
+const UniversitiesManagement = lazy(() => import("./pages/management/universities/UniversitiesManagement"));
+const CompaniesManagement = lazy(() => import("./pages/management/companies/CompaniesManagement"));
+const UniversityClasses = lazy(() => import("./pages/unirep/UniversityClasses"));
+const UniversityJoinRequests = lazy(() => import("./pages/unirep/UniversityJoinRequests"));
+const FinalEvaluationsRep = lazy(() => import("./pages/unirep/FinalEvaluationsRep"));
+const TeacherApplications = lazy(() => import("./pages/teacher/TeacherApplications"));
 const InternshipPhasesManagement = lazy(() => import("./pages/management/phases/InternshipPhasesManagement"));
 const InternshipAssignmentsManagement = lazy(() => import("./pages/management/assignments/InternshipAssignmentsManagement"));
 const AssessmentRoundsManagement = lazy(() => import("./pages/management/assessment-rounds/AssessmentRoundsManagement"));
-const EvaluationCriteriaManagement = lazy(() => import("./pages/management/evaluation-criteria/EvaluationCriteriaManagement"));
 const ReportManagement = lazy(() => import("./pages/management/reports/ReportManagement"));
-const AssessmentResultsManagement = lazy(() => import("./pages/management/assessment-results/AssessmentResultsManagement"));
-const AssessmentResultDetail = lazy(() => import("./pages/management/assessment-results/AssessmentResultDetail"));
 const AssessmentRoundDetail = lazy(() => import("./pages/management/assessment-rounds/AssessmentRoundDetail"));
 const AssignmentDetail = lazy(() => import("./pages/management/assignments/AssignmentDetail"));
+const CompanyApplications = lazy(() => import("./pages/company-rep/CompanyApplications"));
 
 // Fallback Loader
 const PageLoader = () => (
@@ -87,6 +91,62 @@ function App() {
                                 }
                             />
                             <Route
+                                path="/admin/universities"
+                                element={
+                                    <AppLayout>
+                                        <UniversitiesManagement />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/admin/companies"
+                                element={
+                                    <AppLayout>
+                                        <CompaniesManagement />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/rep/classes"
+                                element={
+                                    <AppLayout>
+                                        <UniversityClasses />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/rep/join-requests"
+                                element={
+                                    <AppLayout>
+                                        <UniversityJoinRequests />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/rep/final-evaluations"
+                                element={
+                                    <AppLayout>
+                                        <FinalEvaluationsRep />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/teacher/applications"
+                                element={
+                                    <AppLayout>
+                                        <TeacherApplications />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
+                                path="/company-rep/applications"
+                                element={
+                                    <AppLayout>
+                                        <CompanyApplications />
+                                    </AppLayout>
+                                }
+                            />
+                            <Route
                                 path="/management/students"
                                 element={
                                     <AppLayout>
@@ -127,22 +187,6 @@ function App() {
                                 }
                             />
                             <Route
-                                path="/management/evaluation-criteria"
-                                element={
-                                    <AppLayout>
-                                        <EvaluationCriteriaManagement />
-                                    </AppLayout>
-                                }
-                            />
-                            <Route
-                                path="/management/assessment-results"
-                                element={
-                                    <AppLayout>
-                                        <AssessmentResultsManagement />
-                                    </AppLayout>
-                                }
-                            />
-                            <Route
                                 path="/admin/assessment-rounds/:id"
                                 element={
                                     <AppLayout>
@@ -151,18 +195,10 @@ function App() {
                                 }
                             />
                             <Route
-                                path="/admin/assessment-results/:id"
-                                element={
-                                    <AppLayout>
-                                        <AssessmentResultDetail />
-                                    </AppLayout>
-                                }
-                            />
-                            <Route
                                 path="/my-mentor"
                                 element={
                                     <AppLayout>
-                                        <AssignedMentor />
+                                        <MyMentor />
                                     </AppLayout>
                                 }
                             />
@@ -170,15 +206,16 @@ function App() {
                                 path="/my-students"
                                 element={
                                     <AppLayout>
-                                        <AssignedStudents />
+                                        <MyStudents />
                                     </AppLayout>
                                 }
                             />
+
                             <Route
-                                path="/submit-report"
+                                path="/my-internship"
                                 element={
                                     <AppLayout>
-                                        <StudentReportSubmit />
+                                        <StudentWorkflow />
                                     </AppLayout>
                                 }
                             />

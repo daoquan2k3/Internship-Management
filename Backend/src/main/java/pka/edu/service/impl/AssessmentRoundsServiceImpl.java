@@ -7,92 +7,123 @@ import pka.edu.dto.response.ApiResponse;
 import pka.edu.dto.response.AssessmentRoundsResponse;
 import pka.edu.dto.response.PageResponseDTO;
 import pka.edu.entity.AssessmentRound;
-import pka.edu.entity.EvaluationCriteria;
-import pka.edu.entity.InternshipPhase;
-import pka.edu.entity.RoundCriteria;
+
 import pka.edu.exception.ResourceBadRequestException;
 import pka.edu.exception.ResourceConflictException;
 import pka.edu.exception.ResourceNotFoundException;
+import pka.edu.repository.AssessmentRoundsRepository;
+import pka.edu.entity.InternshipPhase;
 import pka.edu.mapper.AssessmentRoundsMapper;
-import pka.edu.repository.IAssessmentRoundsRepository;
-import pka.edu.repository.IEvaluationCriteriaRepository;
 import pka.edu.repository.InternshipPhaseRepository;
 import pka.edu.service.IAssessmentRoundsService;
 import pka.edu.util.PaginationUtil;
-import pka.edu.util.ValidationErrorUtil;
 import lombok.RequiredArgsConstructor;
+import pka.edu.repository.UniversityClassRepository;
+import pka.edu.entity.UniversityClass;
+import pka.edu.entity.User;
+import pka.edu.util.CurrentUserUtil;
+import pka.edu.util.enums.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import pka.edu.exception.ResourceForbiddenException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class AssessmentRoundsServiceImpl implements IAssessmentRoundsService {
 
-    private final IAssessmentRoundsRepository assessmentRoundsRepository;
+    private final AssessmentRoundsRepository assessmentRoundsRepository;
     private final InternshipPhaseRepository internshipPhaseRepository;
-    private final IEvaluationCriteriaRepository iEvaluationCriteriaRepository;
-
+    private final UniversityClassRepository universityClassRepository;
+    private final CurrentUserUtil currentUserUtil;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResponse<AssessmentRoundsResponse> createAssessmentRound(AssessmentRoundCreateRequest request) throws ResourceNotFoundException, ResourceConflictException {
-        Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
+    public ApiResponse<AssessmentRoundsResponse> createAssessmentRound(AssessmentRoundCreateRequest request)
+            throws ResourceNotFoundException, ResourceConflictException, ResourceForbiddenException {
         InternshipPhase phase = internshipPhaseRepository.findByPhaseIdAndIsDeletedFalse(request.getPhaseId())
-                .orElseThrow(() -> new ResourceNotFoundException("Internship phase not found with id: " + request.getPhaseId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Internship phase not found with id: " + request.getPhaseId()));
 
-        AssessmentRound assessmentRounds = AssessmentRoundsMapper.toEntity(request, phase);
+        UniversityClass universityClass = null;
+        if (request.getClassId() != null) {
+            universityClass = universityClassRepository.findById(request.getClassId())
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("Class not found with id: " + request.getClassId()));
+        }
 
-        Set<Long> uniqueCriterionIds = new HashSet<>();
+        User currentUser = currentUserUtil.getCurrentUser();
+        if (currentUser.getRole() == Role.ROLE_TEACHER) {
+            if (universityClass == null) {
+                throw new ResourceForbiddenException("Teacher must specify a class for the assessment round");
+            }
+            if (!currentUser.getUserId().equals(universityClass.getTeacher().getUserId())) {
+                throw new ResourceForbiddenException(
+                        "Teacher can only create assessment rounds for their assigned class");
+            }
+        } else if (currentUser.getRole() == Role.ROLE_UNIVERSITY_REP) {
+            if (universityClass != null
+                    && !currentUser.getUserId().equals(universityClass.getUniversity().getUniversityId())) {
+                throw new ResourceForbiddenException(
+                        "University Rep can only create assessment rounds for their own classes");
+            }
+        }
 
-        List<RoundCriteria> roundCriteriaList = request.getRoundCriteria().stream()
-                .map(req -> {
-                    EvaluationCriteria criteria = null;
-                    try {
-                        criteria = iEvaluationCriteriaRepository
-                                .findByCriterionIdAndIsDeletedFalse(req.getCriterionId())
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                        "Evaluation criterion not found with id: " + req.getCriterionId()));
-                    } catch (ResourceNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
+        AssessmentRound assessmentRounds = AssessmentRoundsMapper.toEntity(request, phase, universityClass);
 
-                    if (!uniqueCriterionIds.add(req.getCriterionId())) {
-                        ValidationErrorUtil.addError(errorList, "roundCriteria", "Duplicate criterion ID");
-                        throw new RuntimeException(new ResourceConflictException("Validation failed", errorList));
-                    }
-                    return RoundCriteria.builder()
-                            .round(assessmentRounds)
-                            .criterion(criteria)
-                            .weight(req.getWeight())
-                            .build();
-                })
-                .toList();
-        assessmentRounds.setRoundCriteriaList(roundCriteriaList);
         assessmentRoundsRepository.save(assessmentRounds);
         return new ApiResponse<>(
                 AssessmentRoundsMapper.toDto(assessmentRounds),
                 true,
                 "Assessment round created successfully",
                 null,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
     }
 
     @Override
-    public PageResponseDTO<AssessmentRoundsResponse> getAllAssessmentRound(String search, Long phaseId, PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<AssessmentRoundsResponse> getAllAssessmentRound(String search, Long phaseId, Long classId,
+            PageRequestDTO pageRequestDTO) {
         Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "assessmentRound");
 
         Page<AssessmentRound> assessmentRoundsPage;
 
-        if (search != null && !search.isBlank() && phaseId != null) {
+        User currentUser = currentUserUtil.getCurrentUser();
+        boolean isTeacher = currentUser.getRole() == Role.ROLE_TEACHER;
+        Long teacherId = currentUser.getUserId();
+
+        if (classId != null && classId != 0) {
+            assessmentRoundsPage = assessmentRoundsRepository.findAllByUniversityClass_ClassId(classId, pageable);
+        } else if (isTeacher) {
+            if (search != null && !search.isBlank() && phaseId != null) {
+                assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndPhaseIdAndTeacherId(search,
+                        phaseId, teacherId, pageable);
+            } else if (search != null && !search.isBlank()) {
+                assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndTeacherId(search, teacherId,
+                        pageable);
+            } else if (phaseId != null && phaseId != 0) {
+                assessmentRoundsPage = assessmentRoundsRepository.findAllByPhase_PhaseIdAndTeacherId(phaseId, teacherId,
+                        pageable);
+            } else {
+                assessmentRoundsPage = assessmentRoundsRepository.findAllByTeacherId(teacherId, pageable);
+            }
+        } else if (currentUser.getRole() == Role.ROLE_UNIVERSITY_REP && currentUser.getUniversity() != null) {
+            Long universityId = currentUser.getUniversity().getUniversityId();
+            if (search != null && !search.isBlank() && phaseId != null) {
+                assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndPhaseIdAndUniversityId(search,
+                        phaseId, universityId, pageable);
+            } else if (search != null && !search.isBlank()) {
+                assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndUniversityId(search, universityId,
+                        pageable);
+            } else if (phaseId != null && phaseId != 0) {
+                assessmentRoundsPage = assessmentRoundsRepository.findAllByPhase_PhaseIdAndUniversityId(phaseId,
+                        universityId, pageable);
+            } else {
+                assessmentRoundsPage = assessmentRoundsRepository.findAllByUniversityId(universityId, pageable);
+            }
+        } else if (search != null && !search.isBlank() && phaseId != null) {
             assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndPhaseId(search, phaseId, pageable);
         } else if (search != null && !search.isBlank()) {
             assessmentRoundsPage = assessmentRoundsRepository.findAllByKeyword(search, pageable);
@@ -117,9 +148,27 @@ public class AssessmentRoundsServiceImpl implements IAssessmentRoundsService {
     }
 
     @Override
-    public ApiResponse<AssessmentRoundsResponse> updateAssessmentRound(Long id, AssessmentRoundUpdateRequest request) throws ResourceNotFoundException, ResourceConflictException, ResourceBadRequestException {
+    public ApiResponse<AssessmentRoundsResponse> updateAssessmentRound(Long id, AssessmentRoundUpdateRequest request)
+            throws ResourceNotFoundException, ResourceConflictException, ResourceBadRequestException,
+            ResourceForbiddenException {
         AssessmentRound assessmentRound = assessmentRoundsRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment round not found with id: " + id));
+
+        User currentUser = currentUserUtil.getCurrentUser();
+        if (currentUser.getRole() == Role.ROLE_TEACHER) {
+            if (assessmentRound.getUniversityClass() == null
+                    || !currentUser.getUserId().equals(assessmentRound.getUniversityClass().getTeacher().getUserId())) {
+                throw new ResourceForbiddenException(
+                        "Teacher can only update assessment rounds for their assigned class");
+            }
+        } else if (currentUser.getRole() == Role.ROLE_UNIVERSITY_REP) {
+            if (assessmentRound.getUniversityClass() != null
+                    && (currentUser.getUniversity() == null || !currentUser.getUniversity().getUniversityId()
+                            .equals(assessmentRound.getUniversityClass().getUniversity().getUniversityId()))) {
+                throw new ResourceForbiddenException(
+                        "University Rep can only update assessment rounds for their own classes");
+            }
+        }
 
         AssessmentRoundsMapper.updateFromDto(assessmentRound, request);
 
@@ -132,9 +181,25 @@ public class AssessmentRoundsServiceImpl implements IAssessmentRoundsService {
     }
 
     @Override
-    public ApiResponse<String> deleteAssessmentRound(Long id) throws ResourceNotFoundException {
+    public ApiResponse<String> deleteAssessmentRound(Long id)
+            throws ResourceNotFoundException, ResourceForbiddenException {
         AssessmentRound assessmentRound = assessmentRoundsRepository.findByRoundIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment round not found with id: " + id));
+        User currentUser = currentUserUtil.getCurrentUser();
+        if (currentUser.getRole() == Role.ROLE_TEACHER) {
+            if (assessmentRound.getUniversityClass() == null
+                    || !currentUser.getUserId().equals(assessmentRound.getUniversityClass().getTeacher().getUserId())) {
+                throw new ResourceForbiddenException(
+                        "Teacher can only delete assessment rounds for their assigned class");
+            }
+        } else if (currentUser.getRole() == Role.ROLE_UNIVERSITY_REP) {
+            if (assessmentRound.getUniversityClass() != null
+                    && (currentUser.getUniversity() == null || !currentUser.getUniversity().getUniversityId()
+                            .equals(assessmentRound.getUniversityClass().getUniversity().getUniversityId()))) {
+                throw new ResourceForbiddenException(
+                        "University Rep can only delete assessment rounds for their own classes");
+            }
+        }
         assessmentRound.setDeleted(true);
         assessmentRound.setIsActive(false);
         assessmentRoundsRepository.save(assessmentRound);
@@ -143,7 +208,6 @@ public class AssessmentRoundsServiceImpl implements IAssessmentRoundsService {
                 true,
                 "SUCCESS",
                 null,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
     }
 }

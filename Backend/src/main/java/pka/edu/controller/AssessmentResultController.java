@@ -28,7 +28,7 @@ public class AssessmentResultController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_MENTOR')")
-    public ResponseEntity<ApiResponse<List<AssessmentResultResponse>>> createAssessmentResult(@Valid @RequestBody AssessmentResultCreateRequest request) throws ResourceConflictException, ResourceForbiddenException, ResourceNotFoundException {
+    public ResponseEntity<ApiResponse<AssessmentResultResponse>> createAssessmentResult(@Valid @RequestBody AssessmentResultCreateRequest request) throws ResourceConflictException, ResourceForbiddenException, ResourceNotFoundException {
         return new ResponseEntity<>(assessmentResultService.createAssessmentResult(request), HttpStatus.CREATED);
     }
 

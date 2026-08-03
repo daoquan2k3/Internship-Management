@@ -12,8 +12,8 @@ import pka.edu.exception.ResourceConflictException;
 import pka.edu.exception.ResourceForbiddenException;
 import pka.edu.exception.ResourceNotFoundException;
 import pka.edu.mapper.InternshipAssignmentMapper;
-import pka.edu.repository.IMentorRepository;
-import pka.edu.repository.IStudentRepository;
+import pka.edu.repository.MentorRepository;
+import pka.edu.repository.StudentRepository;
 import pka.edu.repository.InternshipAssignmentRepository;
 import pka.edu.repository.InternshipPhaseRepository;
 import pka.edu.service.InternshipAssignmentService;
@@ -39,8 +39,8 @@ import java.util.Set;
 public class InternshipAssignmentServiceImpl implements InternshipAssignmentService {
     private final InternshipAssignmentRepository internshipAssignmentRepository;
     private final InternshipPhaseRepository internshipPhaseRepository;
-    private final IMentorRepository iMentorRepository;
-    private final IStudentRepository iStudentRepository;
+    private final MentorRepository MentorRepository;
+    private final StudentRepository StudentRepository;
     private final CurrentUserUtil currentUserUtil;
 
     @Override
@@ -51,7 +51,7 @@ public class InternshipAssignmentServiceImpl implements InternshipAssignmentServ
         InternshipPhase phase = internshipPhaseRepository.findByPhaseIdAndIsDeletedFalse(request.getPhaseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Internship phase not found with id: " + request.getPhaseId()));
 
-        Mentor mentor = iMentorRepository.findByMentorId(request.getMentorId())
+        Mentor mentor = MentorRepository.findByMentorId(request.getMentorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Mentor not found with id: " + request.getMentorId()));
 
         Set<Long> uniqueStudentIds = new HashSet<>(request.getStudentIds());
@@ -60,7 +60,7 @@ public class InternshipAssignmentServiceImpl implements InternshipAssignmentServ
             throw new ResourceConflictException("Validation failed", errorList);
         }
 
-        List<Student> studentList = iStudentRepository.findAllByStudentId(request.getStudentIds());
+        List<Student> studentList = StudentRepository.findAllByStudentId(request.getStudentIds());
         if (studentList.size() != request.getStudentIds().size()) {
             throw new ResourceNotFoundException("One or more students not found with the provided IDs");
         }
@@ -153,7 +153,7 @@ public class InternshipAssignmentServiceImpl implements InternshipAssignmentServ
         }
 
         if (request.getMentorId() != null && !request.getMentorId().equals(internshipAssignment.getMentor().getMentorId())) {
-            Mentor mentor = iMentorRepository.findByMentorId(request.getMentorId())
+            Mentor mentor = MentorRepository.findByMentorId(request.getMentorId())
                     .orElseThrow(() -> new ResourceNotFoundException("Mentor not found with id: " + request.getMentorId()));
             internshipAssignment.setMentor(mentor);
         }
@@ -165,7 +165,7 @@ public class InternshipAssignmentServiceImpl implements InternshipAssignmentServ
         }
 
         if (request.getStudentIds() != null) {
-            List<Student> newStudentList = iStudentRepository.findAllByStudentId(request.getStudentIds());
+            List<Student> newStudentList = StudentRepository.findAllByStudentId(request.getStudentIds());
 
             if (newStudentList.size() != request.getStudentIds().size()) {
                 throw new ResourceNotFoundException("One or more students not found with the provided IDs");

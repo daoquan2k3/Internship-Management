@@ -21,6 +21,8 @@ public class AssessmentRoundCreateRequest {
     @NotNull(message = "Phase ID is required.")
     private Long phaseId;
 
+    private Long classId;
+
     @NotBlank(message = "Round name is required.")
     private String roundName;
 
@@ -34,7 +36,4 @@ public class AssessmentRoundCreateRequest {
 
     private String description;
 
-    @NotNull(message = "Evaluation criteria are required.")
-    @Valid
-    List<RoundCriterionCreateRequest> roundCriteria;
 }

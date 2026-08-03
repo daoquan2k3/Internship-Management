@@ -23,6 +23,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
+import pka.edu.security.filter.RateLimitingFilter;
 
 import java.util.List;
 
@@ -32,6 +34,10 @@ import java.util.List;
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitingFilter rateLimitingFilter;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/v1/auth/**"
@@ -48,7 +54,10 @@ public class SecurityConfig {
             "/api/v1/internship-assignments/**",
             "/api/v1/assessment-results/**",
             "/api/v1/reports/**",
-            "/api/v1/dashboards/**"
+            "/api/v1/dashboards/**",
+            "/api/v1/universities/**",
+            "/api/v1/companies/**",
+            "/api/v1/jobs/**"
     };
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
@@ -57,14 +66,19 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(COMMON_ENDPOINTS).hasAnyAuthority("ROLE_ADMIN", "ROLE_MENTOR", "ROLE_STUDENT")
+                        .requestMatchers(COMMON_ENDPOINTS).hasAnyAuthority(
+                                "ROLE_ADMIN", "ROLE_UNIVERSITY_REP", 
+                                "ROLE_COMPANY_REP", "ROLE_TEACHER", "ROLE_COMPANY_MENTOR", 
+                                "ROLE_MENTOR", "ROLE_STUDENT"
+                        )
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint()))
                 .exceptionHandling(exception -> exception.accessDeniedHandler(accessDeniedHandler()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider());
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(rateLimitingFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 
@@ -72,9 +86,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:5174", "http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5174", "http://localhost:5173", frontendUrl));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

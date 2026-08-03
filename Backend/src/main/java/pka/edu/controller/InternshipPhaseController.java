@@ -31,6 +31,7 @@ public class InternshipPhaseController {
     }
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PageResponseDTO<InternshipPhaseResponse>> getAllInternshipPhase(
             @RequestParam(required = false) String search,
             @ModelAttribute PageRequestDTO pageRequestDTO
@@ -39,6 +40,7 @@ public class InternshipPhaseController {
     }
 
     @GetMapping("/{phaseId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<InternshipPhaseResponse>> getInternshipPhaseById(@PathVariable Long phaseId) throws ResourceNotFoundException {
         return new ResponseEntity<>(internshipPhaseService.getInternshipPhaseById(phaseId), HttpStatus.OK);
     }

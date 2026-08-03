@@ -1,7 +1,7 @@
 package pka.edu.security.jwt;
 
 import pka.edu.entity.User;
-import pka.edu.repository.IUserRepository;
+import pka.edu.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
     private final UserDetailsService userDetailsService;
-    private final IUserRepository userRepository;
+    private final UserRepository userRepository;
     private final TokenBlacklistService tokenBlacklistService;
 
     @Override

@@ -13,8 +13,8 @@ import pka.edu.exception.ResourceConflictException;
 import pka.edu.exception.ResourceForbiddenException;
 import pka.edu.exception.ResourceNotFoundException;
 import pka.edu.mapper.MentorMapper;
-import pka.edu.repository.IMentorRepository;
-import pka.edu.repository.IUserRepository;
+import pka.edu.repository.MentorRepository;
+import pka.edu.repository.UserRepository;
 import pka.edu.service.IMentorService;
 import pka.edu.util.CurrentUserUtil;
 import pka.edu.util.PaginationUtil;
@@ -31,8 +31,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class MentorServiceImpl implements IMentorService {
-    private final IMentorRepository mentorRepository;
-    private final IUserRepository iUserRepository;
+    private final MentorRepository mentorRepository;
+    private final UserRepository UserRepository;
     private final CurrentUserUtil currentUserUtil;
 
     @Override
@@ -46,7 +46,7 @@ public class MentorServiceImpl implements IMentorService {
             return PaginationUtil.toPageResponseDTO(mentorPage, MentorMapper::toDto);
         } else if (user.getRole() == Role.ROLE_STUDENT) {
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "mentor");
-            mentorPage = mentorRepository.findAllByMentorWithSearch(search, pageable);
+            mentorPage = mentorRepository.findMentorsAssignedToStudentWithSearch(user.getUserId(), search, pageable);
             return PaginationUtil.toPageResponseDTO(mentorPage, MentorMapper::toPublicDto);
         } else {
             throw new ResourceForbiddenException("User role not supported for this operation");
@@ -66,8 +66,12 @@ public class MentorServiceImpl implements IMentorService {
             Mentor mentor = mentorRepository.findByMentorId(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Mentor not found with id: " + id));
 
+            if (mentor.getUser().getRole() != Role.ROLE_TEACHER && mentor.getUser().getRole() != Role.ROLE_COMPANY_MENTOR) {
+                throw new ResourceForbiddenException("You do not have permission to view this mentor's information");
+            }
+
             return new ApiResponse<>(MentorMapper.toPublicDto(mentor), true, "SUCCESS", null, null);
-        } else if (user.getRole() == Role.ROLE_MENTOR) {
+        } else if (user.getRole() == Role.ROLE_MENTOR || user.getRole() == Role.ROLE_COMPANY_MENTOR) {
             Mentor mentor = mentorRepository.findByMentorId(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Mentor not found with id: " + id));
             if (!mentor.getUser().getUserId().equals(user.getUserId())) {
@@ -83,7 +87,7 @@ public class MentorServiceImpl implements IMentorService {
     public ApiResponse<MentorResponse> createMentor(MentorCreateRequest request) throws ResourceNotFoundException, ResourceForbiddenException, ResourceConflictException {
         Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
 
-        User user = iUserRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(request.getUserId())
+        User user = UserRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
 
         if (user.getRole() != Role.ROLE_MENTOR) {
@@ -116,7 +120,7 @@ public class MentorServiceImpl implements IMentorService {
             Mentor existingMentor = mentorRepository.findByMentorId(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Mentor not found with id: " + id));
 
-            if (iUserRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(request.getEmail(), existingMentor.getUser().getUserId())) {
+            if (UserRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(request.getEmail(), existingMentor.getUser().getUserId())) {
                 errorList.put("email", "Email already exists");
                 throw new ResourceConflictException("Validation failed", errorList);
             }
@@ -129,7 +133,7 @@ public class MentorServiceImpl implements IMentorService {
                     "Mentor updated successfully",
                     null,
                     LocalDateTime.now());
-        } else if (currentUser.getRole() == Role.ROLE_MENTOR) {
+        } else if (currentUser.getRole() == Role.ROLE_MENTOR || currentUser.getRole() == Role.ROLE_COMPANY_MENTOR) {
             Mentor existingMentor = mentorRepository.findByMentorId(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Mentor not found with id: " + id));
 
@@ -137,7 +141,7 @@ public class MentorServiceImpl implements IMentorService {
                 throw new ResourceForbiddenException("You cannot update other mentor's information");
             }
 
-            if (iUserRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(request.getEmail(), existingMentor.getUser().getUserId())) {
+            if (UserRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(request.getEmail(), existingMentor.getUser().getUserId())) {
                 errorList.put("email", "Email already exists");
                 throw new ResourceConflictException("Validation failed", errorList);
             }

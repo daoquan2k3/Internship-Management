@@ -24,6 +24,7 @@ public class Mentor {
 
     private String department;
     private String academicRank;
+    private String position;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

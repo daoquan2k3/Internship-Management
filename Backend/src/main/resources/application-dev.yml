@@ -25,6 +25,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        default_batch_fetch_size: 100
     show-sql: true
   servlet:
     multipart:
@@ -34,7 +35,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: daoanhquan2k3@gmail.com
-    password: tjwugtwnqtqengug
+    password: lmchctgakbueqiqx
     properties:
       mail:
         smtp:

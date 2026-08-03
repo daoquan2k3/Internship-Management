@@ -17,8 +17,7 @@ public class BulkAssessmentSaveRequest {
     @NotNull(message = "Round ID không được trống")
     private Long roundId;
 
-    @NotNull(message = "Criterion ID không được trống")
-    private Long criterionId;
+
 
     @NotNull(message = "Danh sách điểm không được trống")
     private List<StudentEvaluationRequest> evaluations;

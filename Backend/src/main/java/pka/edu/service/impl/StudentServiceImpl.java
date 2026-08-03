@@ -13,8 +13,8 @@ import pka.edu.exception.ResourceConflictException;
 import pka.edu.exception.ResourceForbiddenException;
 import pka.edu.exception.ResourceNotFoundException;
 import pka.edu.mapper.StudentMapper;
-import pka.edu.repository.IStudentRepository;
-import pka.edu.repository.IUserRepository;
+import pka.edu.repository.StudentRepository;
+import pka.edu.repository.UserRepository;
 import pka.edu.repository.InternshipAssignmentRepository;
 import pka.edu.service.IStudentService;
 import pka.edu.util.CurrentUserUtil;
@@ -32,15 +32,15 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class StudentServiceImpl implements IStudentService {
-    private final IStudentRepository studentRepository;
-    private final IUserRepository iUserRepository;
+    private final StudentRepository studentRepository;
+    private final UserRepository UserRepository;
     private final InternshipAssignmentRepository internshipAssignmentRepository;
     private final CurrentUserUtil currentUserUtil;
 
     @Override
     public ApiResponse<StudentResponse> createStudent(StudentCreateRequest request) throws ResourceNotFoundException, ResourceBadRequestException, ResourceForbiddenException, ResourceConflictException {
         Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
-        User user = iUserRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(request.getUserId())
+        User user = UserRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
 
         if (studentRepository.existsByStudentCode(request.getStudentCode())) {
@@ -80,9 +80,20 @@ public class StudentServiceImpl implements IStudentService {
         if (currentUser.getRole() == Role.ROLE_ADMIN) {
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "student");
             studentPage = studentRepository.findAllStudentsWithSearch(search, pageable);
-        } else if (currentUser.getRole() == Role.ROLE_MENTOR) {
+        } else if (currentUser.getRole() == Role.ROLE_MENTOR || currentUser.getRole() == Role.ROLE_COMPANY_MENTOR) {
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "student");
             studentPage = internshipAssignmentRepository.findStudentsByMentorIdWithSearch(currentUser.getUserId(), search, pageable);
+        } else if (currentUser.getRole() == Role.ROLE_TEACHER) {
+            Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "student");
+            studentPage = studentRepository.findStudentsByTeacherIdWithSearch(currentUser.getUserId(), search, pageable);
+        } else if (currentUser.getRole() == Role.ROLE_COMPANY_REP) {
+            User dbUser = UserRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(currentUser.getUserId())
+                    .orElseThrow(() -> new ResourceForbiddenException("User not found"));
+            if (dbUser.getCompany() == null) {
+                throw new ResourceForbiddenException("Company Representative must belong to a company");
+            }
+            Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "student");
+            studentPage = studentRepository.findStudentsByCompanyIdOrTaxCodeWithSearch(dbUser.getCompany().getCompanyId(), dbUser.getCompany().getCompanyCode(), search, pageable);
         } else {
             throw new ResourceForbiddenException("Current user does not have permission to view students");
         }
@@ -136,7 +147,7 @@ public class StudentServiceImpl implements IStudentService {
         if (currentUser.getRole() == Role.ROLE_ADMIN){
             Student existingStudent = studentRepository.findByStudentId(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
-            if (iUserRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(request.getEmail(), existingStudent.getUser().getUserId())) {
+            if (UserRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(request.getEmail(), existingStudent.getUser().getUserId())) {
                 ValidationErrorUtil.addError(errorList, "email", "Email already exists");
             }
 
@@ -163,7 +174,7 @@ public class StudentServiceImpl implements IStudentService {
                 throw new ResourceForbiddenException("You cannot update other student's information");
             }
 
-            if (iUserRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(request.getEmail(), existingStudent.getUser().getUserId())) {
+            if (UserRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(request.getEmail(), existingStudent.getUser().getUserId())) {
                 ValidationErrorUtil.addError(errorList, "email", "Email already exists");
             }
 

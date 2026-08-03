@@ -20,10 +20,6 @@ public class AssessmentResultMapper {
                 .roundId(entity.getRound().getRoundId())
                 .roundName(entity.getRound().getRoundName())
 
-                // Map tiêu chí đánh giá
-                .criterionId(entity.getCriterion().getCriterionId())
-                .criterionName(entity.getCriterion().getCriterionName())
-
                 .score(entity.getScore())
                 .contribution(entity.getContribution())
                 .comments(entity.getComment()) // Nhớ lấy đúng trường comment trong entity

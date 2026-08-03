@@ -11,9 +11,9 @@ import pka.edu.exception.ResourceBadRequestException;
 import pka.edu.exception.ResourceConflictException;
 import pka.edu.exception.ResourceNotFoundException;
 import pka.edu.mapper.UserMapper;
-import pka.edu.repository.IMentorRepository;
-import pka.edu.repository.IStudentRepository;
-import pka.edu.repository.IUserRepository;
+import pka.edu.repository.MentorRepository;
+import pka.edu.repository.StudentRepository;
+import pka.edu.repository.UserRepository;
 import pka.edu.security.jwt.JwtProvider;
 import pka.edu.security.jwt.RefreshTokenService;
 import pka.edu.security.jwt.TokenBlacklistService;
@@ -38,14 +38,14 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
-    private final IUserRepository userRepository;
+    private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenBlacklistService tokenBlacklistService;
     private final RefreshTokenService refreshTokenService;
-    private final IStudentRepository iStudentRepository;
-    private final IMentorRepository iMentorRepository;
+    private final StudentRepository StudentRepository;
+    private final MentorRepository MentorRepository;
 
     @Value("${jwt_expire}")
     private long expire;
@@ -91,11 +91,11 @@ public class AuthServiceImpl implements IAuthService {
             Student student = new Student();
             student.setUser(users);
             student.setStudentCode("STU" + String.format("%04d", users.getUserId()));
-            iStudentRepository.save(student);
+            StudentRepository.save(student);
         } else if (users.getRole() == Role.ROLE_MENTOR) {
             Mentor mentor = new Mentor();
             mentor.setUser(users);
-            iMentorRepository.save(mentor);
+            MentorRepository.save(mentor);
         }
         RegisterResponse response = RegisterResponse.builder()
                 .message("Register successfully")

@@ -5,13 +5,17 @@ import pka.edu.dto.request.PageRequestDTO;
 import pka.edu.dto.response.ApiResponse;
 import pka.edu.dto.response.PageResponseDTO;
 import pka.edu.dto.response.ReportResponse;
+import pka.edu.entity.AssessmentRound;
 import pka.edu.entity.InternshipAssignment;
 import pka.edu.entity.Report;
 import pka.edu.entity.User;
 import pka.edu.event.NotificationEventDTO;
+import pka.edu.exception.ResourceForbiddenException;
 import pka.edu.exception.ResourceNotFoundException;
 import pka.edu.mapper.ReportMapper;
-import pka.edu.repository.IReportRepository;
+import pka.edu.repository.AssessmentRoundsRepository;
+import pka.edu.repository.ReportRepository;
+import pka.edu.repository.InternshipApplicationRepository;
 import pka.edu.repository.InternshipAssignmentRepository;
 import pka.edu.service.IReportService;
 import pka.edu.util.CurrentUserUtil;
@@ -21,6 +25,7 @@ import pka.edu.util.enums.AssignmentStatus;
 import pka.edu.util.enums.ReportStatus;
 import pka.edu.util.enums.Role;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -44,10 +49,13 @@ import java.util.zip.ZipOutputStream;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReportServiceImpl implements IReportService {
-    private final IReportRepository reportRepository;
+    private final ReportRepository reportRepository;
     private final CurrentUserUtil currentUserUtil;
+    private final AssessmentRoundsRepository assessmentRoundsRepository;
     private final InternshipAssignmentRepository internshipAssignmentRepository;
+    private final InternshipApplicationRepository internshipApplicationRepository;
     private final RabbitTemplate rabbitTemplate;
     private final RestTemplate restTemplate = new RestTemplate();
     private final FileUploadService fileUploadService;
@@ -60,19 +68,9 @@ public class ReportServiceImpl implements IReportService {
     private String routingKey;
 
     @Override
-    public ApiResponse<ReportResponse> processAndSaveReport(MultipartFile file, String title) {
+    public ApiResponse<ReportResponse> processAndSaveReport(MultipartFile file, String title, Long roundId) {
         try {
             String fileUrl = fileUploadService.uploadDocument(file);
-
-            Report report = Report.builder()
-                    .title(title)
-                    .originalFileName(file.getOriginalFilename())
-                    .fileUrl(fileUrl)
-                    .uploadTime(LocalDateTime.now())
-                    .user(currentUserUtil.getCurrentUser().getStudent().getUser())
-                    .build();
-
-            Report savedReport = reportRepository.save(report);
 
             Page<InternshipAssignment> assignmentPage = internshipAssignmentRepository.findByStudent_StudentId(
                     "",
@@ -81,8 +79,23 @@ public class ReportServiceImpl implements IReportService {
 
             List<InternshipAssignment> assignments = assignmentPage.getContent();
 
+            AssessmentRound round = assessmentRoundsRepository.findById(roundId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Assessment Round not found with id: " + roundId));
+
+            Report report = Report.builder()
+                    .title(title)
+                    .originalFileName(file.getOriginalFilename())
+                    .fileUrl(fileUrl)
+                    .uploadTime(LocalDateTime.now())
+                    .user(currentUserUtil.getCurrentUser().getStudent().getUser())
+                    .assessmentRound(round)
+                    .universityClass(round.getUniversityClass())
+                    .build();
+
+            Report savedReport = reportRepository.save(report);
+
             for (InternshipAssignment assignment : assignments) {
-                if (assignment.getStatus() != AssignmentStatus.IN_PROGRESS) {
+                if (assignment.getStatus() != AssignmentStatus.IN_PROGRESS && assignment.getStatus() != AssignmentStatus.PENDING) {
                     continue;
                 }
                 Long mentorUserId = assignment.getMentor().getUser().getUserId();
@@ -99,6 +112,19 @@ public class ReportServiceImpl implements IReportService {
                 rabbitTemplate.convertAndSend(exchangeName, routingKey, eventDTO);
             }
 
+            if (round.getUniversityClass() != null && round.getUniversityClass().getTeacher() != null) {
+                Long teacherUserId = round.getUniversityClass().getTeacher().getUserId();
+                NotificationEventDTO teacherEventDTO = NotificationEventDTO.builder()
+                        .recipientId(teacherUserId)
+                        .title("🔔 Báo cáo mới từ sinh viên!")
+                        .message("Sinh viên " + currentUserUtil.getCurrentUser().getFullName()
+                                + " (" + currentUserUtil.getCurrentUser().getStudent().getStudentCode()
+                                + ") vừa nộp báo cáo: " + title)
+                        .type("REPORT")
+                        .build();
+                rabbitTemplate.convertAndSend(exchangeName, routingKey, teacherEventDTO);
+            }
+
             ReportResponse reportResponse = ReportMapper.toDTO(savedReport);
 
             return ApiResponse.<ReportResponse>builder()
@@ -110,6 +136,7 @@ public class ReportServiceImpl implements IReportService {
                     .build();
 
         } catch (Exception e) {
+            log.error("Report upload failed: ", e);
             return ApiResponse.<ReportResponse>builder()
                     .data(null)
                     .success(false)
@@ -122,14 +149,23 @@ public class ReportServiceImpl implements IReportService {
 
     @Override
     public PageResponseDTO<ReportResponse> getAllReport(String search, PageRequestDTO pageRequestDTO) {
+        return this.getAllReport(search, null, pageRequestDTO);
+    }
+
+    @Override
+    public PageResponseDTO<ReportResponse> getAllReport(String search, Long classId, PageRequestDTO pageRequestDTO) {
         Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "report");
         User user = currentUserUtil.getCurrentUser();
         Page<Report> reportPage;
 
         if (user.getRole() == Role.ROLE_ADMIN) {
-            reportPage = reportRepository.findAllByAdmin(search, pageable);
+            reportPage = reportRepository.findAllByAdminAndClassId(classId, search, pageable);
         } else if (user.getRole() == Role.ROLE_MENTOR) {
             reportPage = reportRepository.findByMentorId(user.getMentor().getMentorId(), search, pageable);
+        } else if (user.getRole() == Role.ROLE_TEACHER) {
+            reportPage = reportRepository.findByTeacherId(user.getUserId(), classId, search, pageable);
+        } else if (user.getRole() == Role.ROLE_UNIVERSITY_REP && user.getUniversity() != null) {
+            reportPage = reportRepository.findByUniversityId(user.getUniversity().getUniversityId(), classId, search, pageable);
         } else {
             reportPage = Page.empty();
         }
@@ -156,6 +192,19 @@ public class ReportServiceImpl implements IReportService {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Report not found with ID: " + reportId));
 
+        User currentUser = currentUserUtil.getCurrentUser();
+        if (currentUser.getRole() == Role.ROLE_STUDENT) {
+            if (!report.getUser().getUserId().equals(currentUser.getUserId())) {
+                throw new RuntimeException("Unauthorized to view this report");
+            }
+        } else {
+            try {
+                checkReportPermission(report, currentUser);
+            } catch (ResourceForbiddenException e) {
+                throw new RuntimeException("Unauthorized to view this report");
+            }
+        }
+
         ReportResponse reportResponse = ReportMapper.toDTO(report);
 
         return ApiResponse.<ReportResponse>builder()
@@ -178,7 +227,12 @@ public class ReportServiceImpl implements IReportService {
 
     @Override
     public ByteArrayInputStream exportReportExcel(String search, PageRequestDTO pageRequestDTO) {
-        PageResponseDTO<ReportResponse> pageData = this.getAllReport(search, pageRequestDTO);
+        return this.exportReportExcel(search, null, pageRequestDTO);
+    }
+
+    @Override
+    public ByteArrayInputStream exportReportExcel(String search, Long classId, PageRequestDTO pageRequestDTO) {
+        PageResponseDTO<ReportResponse> pageData = this.getAllReport(search, classId, pageRequestDTO);
 
         List<ReportResponse> dtoList = pageData.getContent();
 
@@ -187,7 +241,12 @@ public class ReportServiceImpl implements IReportService {
 
     @Override
     public ByteArrayInputStream exportReportZip(String search, PageRequestDTO pageRequestDTO) {
-        PageResponseDTO<ReportResponse> pageData = this.getAllReport(search, pageRequestDTO);
+        return this.exportReportZip(search, null, pageRequestDTO);
+    }
+
+    @Override
+    public ByteArrayInputStream exportReportZip(String search, Long classId, PageRequestDTO pageRequestDTO) {
+        PageResponseDTO<ReportResponse> pageData = this.getAllReport(search, classId, pageRequestDTO);
         List<ReportResponse> reports = pageData.getContent();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -218,9 +277,13 @@ public class ReportServiceImpl implements IReportService {
 
     @Override
     @Transactional
-    public void gradeReport(Long reportId, GradeReportRequest request) throws ResourceNotFoundException {
+    public void gradeReport(Long reportId, GradeReportRequest request)
+            throws ResourceNotFoundException, ResourceForbiddenException {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Report not found with ID: " + reportId));
+
+        User currentUser = currentUserUtil.getCurrentUser();
+        checkReportPermission(report, currentUser);
 
         report.setScore(request.getScore());
         report.setFeedback(request.getFeedback());
@@ -267,5 +330,41 @@ public class ReportServiceImpl implements IReportService {
                 .error(null)
                 .timestamp(LocalDateTime.now())
                 .build();
+    }
+
+    private void checkReportPermission(Report report, User currentUser) throws ResourceForbiddenException {
+        if (currentUser.getRole() == Role.ROLE_ADMIN || currentUser.getRole() == Role.ROLE_UNIVERSITY_REP) {
+            return;
+        }
+
+        boolean hasPermission = false;
+        
+        Page<InternshipAssignment> assignments = internshipAssignmentRepository.findByStudent_StudentId(
+                "", report.getUser().getStudent().getStudentId(), PageRequest.of(0, 10));
+
+        for (InternshipAssignment assignment : assignments.getContent()) {
+            if (assignment.getStatus() == AssignmentStatus.IN_PROGRESS) {
+                Long mentorUserId = assignment.getMentor() != null ? assignment.getMentor().getUser().getUserId() : null;
+                if (currentUser.getUserId().equals(mentorUserId)) {
+                    hasPermission = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasPermission && currentUser.getRole() == Role.ROLE_TEACHER) {
+            Page<pka.edu.entity.InternshipApplication> applications = internshipApplicationRepository
+                    .findByStudent_StudentId(report.getUser().getStudent().getStudentId(), PageRequest.of(0, 100));
+            for (pka.edu.entity.InternshipApplication app : applications.getContent()) {
+                if (app.getUniversityClass().getTeacher().getUserId().equals(currentUser.getUserId())) {
+                    hasPermission = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasPermission) {
+            throw new ResourceForbiddenException("You do not have permission to access this report");
+        }
     }
 }

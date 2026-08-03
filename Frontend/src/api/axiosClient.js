@@ -1,9 +1,8 @@
 import axios from 'axios';
 import { toast } from 'react-toastify'; // Import thư viện thông báo
 
-const BASE_URL = import.meta.env.DEV
-    ? 'http://localhost:8080'
-    : '';
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8080' : '');
+const BASE_URL = rawBaseUrl.endsWith('/api/v1') ? rawBaseUrl.replace('/api/v1', '') : rawBaseUrl;
 
 const axiosClient = axios.create({
     baseURL: BASE_URL,
@@ -19,6 +18,12 @@ axiosClient.interceptors.request.use(
         const token = localStorage.getItem('accessToken');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        if (config.data && (config.data instanceof FormData || config.data.constructor?.name === 'FormData' || typeof config.data.append === 'function')) {
+            delete config.headers['Content-Type'];
+            if (config.headers.post) delete config.headers.post['Content-Type'];
+            if (config.headers.put) delete config.headers.put['Content-Type'];
+            if (config.headers.common) delete config.headers.common['Content-Type'];
         }
         return config;
     },
@@ -54,16 +59,26 @@ axiosClient.interceptors.response.use(
                 return new Promise(function (resolve, reject) {
                     failedQueue.push({ resolve, reject });
                 }).then(token => {
+                    originalRequest._retry = true;
                     originalRequest.headers['Authorization'] = 'Bearer ' + token;
                     return axiosClient(originalRequest);
                 }).catch(err => Promise.reject(err));
+            }
+
+            // Fix for overlapping 401s: If token was already refreshed by another request while this one was in-flight
+            const currentToken = localStorage.getItem('accessToken');
+            const sentToken = originalRequest.headers['Authorization']?.split(' ')[1];
+            if (currentToken && sentToken && currentToken !== sentToken) {
+                originalRequest._retry = true;
+                originalRequest.headers['Authorization'] = `Bearer ${currentToken}`;
+                return axiosClient(originalRequest);
             }
 
             originalRequest._retry = true;
             isRefreshing = true;
 
             try {
-                const res = await axios.post(`${BASE_URL}/api/v1/auth/refresh`, {}, {
+                const res = await axios.post(`${BASE_URL.replace('/api/v1', '')}/api/v1/auth/refresh`, {}, {
                     withCredentials: true
                 });
 
@@ -82,8 +97,11 @@ axiosClient.interceptors.response.use(
             } catch (err) {
                 processQueue(err, null);
 
-                localStorage.removeItem('accessToken');
-                window.location.href = '#/login';
+                // Only log out if it's a 4xx error or an actual backend rejection, not a network/abort error.
+                if (err.response && err.response.status >= 400 && err.response.status < 500) {
+                    localStorage.removeItem('accessToken');
+                    window.location.href = '/login';
+                }
                 return Promise.reject(err);
             } finally {
                 isRefreshing = false;

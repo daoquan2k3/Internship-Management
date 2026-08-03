@@ -23,6 +23,8 @@ public class ReportMapper {
                 .aiBlockers(report.getAiBlockers())
                 .aiSentiment(report.getAiSentiment())
                 .aiSuggestedFeedback(report.getAiSuggestedFeedback())
+                .roundId(report.getAssessmentRound() != null ? report.getAssessmentRound().getRoundId() : null)
+                .roundName(report.getAssessmentRound() != null ? report.getAssessmentRound().getRoundName() : null)
                 .build();
     }
 }

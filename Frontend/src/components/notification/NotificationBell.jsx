@@ -33,9 +33,8 @@ const NotificationBell = () => {
       user &&
       user.fullName &&
       user.phoneNumber &&
-      (user.role.includes("ADMIN") ||
-        (user.role.includes("STUDENT") && user.student?.major && user.student?.classRoom) ||
-        (user.role.includes("MENTOR") && user.mentor?.department));
+      (!user.role.includes("STUDENT") || (user.student?.major && user.student?.classRoom)) &&
+      (!user.role.includes("MENTOR") || user.mentor?.department);
     if (isProfileComplete) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchNotifications();

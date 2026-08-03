@@ -27,7 +27,5 @@ public class AssessmentRoundUpdateRequest {
     private String description;
     private Boolean isActive;
 
-    @Valid
-    private List<RoundCriterionUpdateRequest> roundCriteria;
     private Boolean isDeleted;
 }

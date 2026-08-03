@@ -18,6 +18,9 @@ export const studentApi = {
   // Update student info
   updateStudent: (studentId, data) =>
     axiosClient.put(`/api/v1/students/${studentId}`, data),
+
+  // Delete student (Admin only) - actually deletes user profile
+  deleteStudent: (studentId) => axiosClient.delete(`/api/v1/users/${studentId}`),
 };
 
 export const mentorApi = {
@@ -36,6 +39,9 @@ export const mentorApi = {
     axiosClient.put(`/api/v1/mentors/${mentorId}`, data),
 
   getMentorInfo: () => axiosClient.get("/api/v1/mentors/info"),
+
+  // Delete mentor (Admin only) - actually deletes user profile
+  deleteMentor: (mentorId) => axiosClient.delete(`/api/v1/users/${mentorId}`),
 };
 
 export const userApi = {
@@ -70,13 +76,7 @@ export const userApi = {
     axiosClient.post("/api/v1/users/change-password", data),
 
   uploadAvatar: (userId, formData) => {
-    return axiosClient.put(`/api/v1/users/${userId}/avatar`, formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        }
-      }
-    );
+    return axiosClient.put(`/api/v1/users/${userId}/avatar`, formData);
   },
 };
 
@@ -135,9 +135,9 @@ export const internshipAssignmentApi = {
 
 export const assessmentRoundsApi = {
   // Get all rounds
-  getAllRounds: (search = "", phaseId = "", page = 0, size = 10) =>
+  getAllRounds: (search = "", phaseId = "", classId = "", page = 0, size = 10) =>
     axiosClient.get("/api/v1/assessment-rounds", {
-      params: { search, phaseId, page, size },
+      params: { search, phaseId, classId, page, size },
     }),
 
   // Get round by ID
@@ -201,20 +201,19 @@ export const assessmentResultApi = {
     axiosClient.post("/api/v1/assessment-results/bulk", data),
 };
 export const reportApi = {
-  uploadReport: (file, title) => {
+  uploadReport: (file, title, roundId) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("title", title);
+    if (roundId) {
+      formData.append("roundId", roundId);
+    }
 
-    return axiosClient.post("/api/v1/reports/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    return axiosClient.post("/api/v1/reports/upload", formData);
   },
-  getAllReports: (search = "", page = 0, size = 10) =>
+  getAllReports: (search = "", page = 0, size = 10, classId = "") =>
     axiosClient.get("/api/v1/reports", {
-      params: { search, page, size },
+      params: { search, page, size, ...(classId ? { classId } : {}) },
     }),
 
   downloadReport: (reportId) => {
@@ -225,14 +224,14 @@ export const reportApi = {
   getMyReports: () => {
     return axiosClient.get("/api/v1/reports/my-reports");
   },
-  exportExcel: (search = "", page = 0, size = 10) =>
+  exportExcel: (search = "", page = 0, size = 10, classId = "") =>
     axiosClient.get(`/api/v1/reports/export-excel`, {
-      params: { search, page, size },
+      params: { search, page, size, ...(classId ? { classId } : {}) },
       responseType: "blob",
     }),
-  exportZip: (search = "", page = 0, size = 100) =>
+  exportZip: (search = "", page = 0, size = 100, classId = "") =>
     axiosClient.get(`/api/v1/reports/export-zip`, {
-      params: { search, page, size },
+      params: { search, page, size, ...(classId ? { classId } : {}) },
       responseType: "blob",
     }),
 
@@ -256,4 +255,5 @@ export const dashboardApi = {
   getStats: () => axiosClient.get("/api/v1/dashboards/stats"),
   getMentorStats: () => axiosClient.get("/api/v1/dashboards/mentor-stats"),
   getStudentStats: () => axiosClient.get("/api/v1/dashboards/student-stats"),
+  getRepStats: () => axiosClient.get("/api/v1/dashboards/rep-stats"),
 };

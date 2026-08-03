@@ -55,6 +55,7 @@ export const TopBar = ({
         borderBottom: 1,
         borderColor: "divider",
         boxShadow: "0 4px 30px rgba(0, 0, 0, 0.03)",
+        transition: "width 0.3s ease, margin-left 0.3s ease",
       }}
     >
       <Toolbar>

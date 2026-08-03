@@ -32,6 +32,7 @@ public class MentorController {
     }
 
     @GetMapping("/{mentorId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Object>> getMentorById(@PathVariable Long mentorId) throws ResourceNotFoundException, ResourceForbiddenException {
         return new ResponseEntity<>(mentorService.getMentorById(mentorId), HttpStatus.OK);
     }
@@ -43,12 +44,13 @@ public class MentorController {
     }
 
     @PutMapping("/{mentorId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MENTOR', 'ROLE_COMPANY_MENTOR')")
     public ResponseEntity<ApiResponse<MentorResponse>> updateMentor(@PathVariable Long mentorId, @Valid @RequestBody MentorUpdateRequest request) throws ResourceConflictException, ResourceForbiddenException, ResourceNotFoundException, ResourceBadRequestException {
         return new ResponseEntity<>(mentorService.updateMentor(mentorId, request), HttpStatus.OK);
     }
 
     @GetMapping("/info")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<MentorResponse>> getMentorInfo(Authentication authentication) throws ResourceNotFoundException {
         String username = authentication.getName();
         return new ResponseEntity<>(mentorService.getMentorInfo(username), HttpStatus.OK);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { assessmentRoundsApi, evaluationCriteriaApi } from "../../../api/resourceApi";
+import { assessmentRoundsApi } from "../../../api/resourceApi";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../context/AuthContext";
@@ -19,8 +19,9 @@ import SubtitlesIcon from '@mui/icons-material/Subtitles';
 
 import RoundFormModal from "./components/RoundFormModal";
 import ConfirmDeleteModal from "../../../components/common/ConfirmDeleteModal";
+import { universityClassApi } from "../../../api/universityApi";
 
-const AssessmentRoundsManagement = () => {
+const AssessmentRoundsManagement = ({ isEmbedded = false }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -36,41 +37,47 @@ const AssessmentRoundsManagement = () => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [roundToDelete, setRoundToDelete] = useState(null);
 
-  const [allCriteria, setAllCriteria] = useState([]);
   const [formData, setFormData] = useState({
     roundName: "",
     description: "",
     startDate: "",
     endDate: "",
     phaseId: "",
+    classId: "",
     isDeleted: false,
     roundCriteria: []
   });
+  
+  const [teacherClasses, setTeacherClasses] = useState([]);
 
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const isAdmin = user?.role === "ADMIN" || user?.role === "ROLE_ADMIN";
+  const isTeacher = user?.role === "TEACHER" || user?.role === "ROLE_TEACHER";
+  const isUniRep = user?.role === "UNIVERSITY_REP" || user?.role === "ROLE_UNIVERSITY_REP";
+  const canManage = isAdmin || isTeacher || isUniRep;
 
   useEffect(() => {
     let isMounted = true;
-    const fetchAllCriteria = async () => {
+    const fetchClasses = async () => {
+      if (!user?.userId) return;
       try {
-        const res = await evaluationCriteriaApi.getAllCriteria();
-        if (isMounted) setAllCriteria(res?.content || []);
+        const res = await universityClassApi.getMyClasses(1, 100);
+        if (isMounted) setTeacherClasses(res?.content || []);
       } catch (err) {
-        console.error("Failed to fetch criteria", err);
+        console.error("Failed to fetch classes", err);
       }
     };
-    fetchAllCriteria();
+    fetchClasses();
     return () => { isMounted = false; };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     let isMounted = true;
     const fetchRounds = async () => {
       try {
         setLoading(true);
-        const response = await assessmentRoundsApi.getAllRounds(search, null, page, rowsPerPage);
+        const response = await assessmentRoundsApi.getAllRounds(search, null, null, page, rowsPerPage);
         if (isMounted) {
           setData(response?.content || []);
           setTotalCount(response?.totalElements || 0);
@@ -88,7 +95,7 @@ const AssessmentRoundsManagement = () => {
   const fetchRoundsManual = async () => {
     try {
       setLoading(true);
-      const response = await assessmentRoundsApi.getAllRounds(search, null, page, rowsPerPage);
+      const response = await assessmentRoundsApi.getAllRounds(search, null, null, page, rowsPerPage);
       setData(response?.content || []);
       setTotalCount(response?.totalElements || 0);
     } catch (err) {
@@ -116,6 +123,7 @@ const AssessmentRoundsManagement = () => {
         startDate: formatToISO(round.startDate) || "",
         endDate: formatToISO(round.endDate) || "",
         phaseId: round.phaseId || "",
+        classId: round.classId || "",
         isDeleted: round.isDeleted || false,
         roundCriteria: round.roundCriteria ? round.roundCriteria.map(rc => ({
           criterionId: rc.criterionId,
@@ -199,20 +207,22 @@ const AssessmentRoundsManagement = () => {
   };
 
   return (
-    <Box sx={{ p: 4, minHeight: '100vh', backgroundColor: "background.default" }}>
+    <Box sx={{ p: isEmbedded ? 0 : 4, minHeight: isEmbedded ? 'auto' : '100vh', backgroundColor: isEmbedded ? 'transparent' : "background.default" }}>
 
       {/* --- HEADER CHÍNH --- */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: "primary.light", letterSpacing: '-0.5px' }}>
-            Quản lý Vòng Đánh giá
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-            Thiết lập các vòng đánh giá và phân bổ tiêu chí
-          </Typography>
-        </Box>
+      <Box sx={{ display: "flex", justifyContent: isEmbedded ? "flex-end" : "space-between", alignItems: "center", mb: isEmbedded ? 2 : 4 }}>
+        {!isEmbedded && (
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: "primary.light", letterSpacing: '-0.5px' }}>
+              Quản lý Vòng Đánh giá
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+              Thiết lập các vòng đánh giá và phân bổ tiêu chí
+            </Typography>
+          </Box>
+        )}
 
-        {isAdmin && (
+        {canManage && (
           <Button
             variant="contained" size="large" startIcon={<AddTaskIcon />} onClick={() => handleOpenModal()}
             sx={{ borderRadius: '50px', px: 4, py: 1.5, boxShadow: '0 8px 16px rgba(26, 35, 126, 0.2)', transition: 'all 0.3s', '&:hover': { transform: 'translateY(-2px)' } }}
@@ -308,7 +318,7 @@ const AssessmentRoundsManagement = () => {
                     Chi tiết
                   </Button>
 
-                  {isAdmin && (
+                  {canManage && (
                     <Box>
                       <IconButton size="small" color="primary" onClick={() => handleOpenModal(round)}>
                         <EditIcon />
@@ -340,7 +350,8 @@ const AssessmentRoundsManagement = () => {
         formData={formData}
         setFormData={setFormData}
         onSave={handleSave}
-        allCriteria={allCriteria}
+        teacherClasses={teacherClasses}
+        user={user}
       />
 
       {/* --- ALERT MODAL XÁC NHẬN XÓA --- */}

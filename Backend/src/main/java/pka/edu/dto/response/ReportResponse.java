@@ -30,4 +30,7 @@ public class ReportResponse {
     private String aiBlockers;
     private String aiSentiment;
     private String aiSuggestedFeedback;
+
+    private Long roundId;
+    private String roundName;
 }

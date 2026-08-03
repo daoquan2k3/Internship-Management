@@ -10,9 +10,11 @@ import pka.edu.exception.ResourceConflictException;
 import pka.edu.exception.ResourceForbiddenException;
 import pka.edu.exception.ResourceNotFoundException;
 import pka.edu.mapper.UserMapper;
-import pka.edu.repository.IUserRepository;
-import pka.edu.repository.IStudentRepository;
-import pka.edu.repository.IMentorRepository;
+import pka.edu.repository.UserRepository;
+import pka.edu.repository.StudentRepository;
+import pka.edu.repository.MentorRepository;
+import pka.edu.repository.UniversityRepository;
+import pka.edu.repository.CompanyRepository;
 import pka.edu.service.IUserService;
 import pka.edu.util.CurrentUserUtil;
 import pka.edu.util.PaginationUtil;
@@ -23,8 +25,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -32,15 +38,18 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements IUserService {
-    private final IUserRepository userRepository;
-    private final IStudentRepository studentRepository;
-    private final IMentorRepository mentorRepository;
+    private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
+    private final MentorRepository mentorRepository;
+    private final UniversityRepository universityRepository;
+    private final CompanyRepository companyRepository;
     private final PasswordEncoder passwordEncoder;
     private final CurrentUserUtil currentUserUtil;
     private final FileUploadService fileUploadService;
 
     @Override
-    public PageResponseDTO<UserResponse> getAllProfile(String role, PageRequestDTO pageRequestDTO) throws ResourceBadRequestException {
+    public PageResponseDTO<UserResponse> getAllProfile(String role, String search, PageRequestDTO pageRequestDTO)
+            throws ResourceBadRequestException, ResourceForbiddenException {
 
         Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
         Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "user");
@@ -56,10 +65,77 @@ public class UserServiceImpl implements IUserService {
             }
         }
 
-        if (roleEnum != null) {
-            usersPage = userRepository.findByRoleAndIsDeletedFalseAndIsActiveTrue(Role.valueOf(role.toUpperCase()), pageable);
+        User currentUser = currentUserUtil.getCurrentUser();
+        String searchParam = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+        User dbUser = userRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(currentUser.getUserId())
+                .orElse(currentUser);
+
+        Long uniId = (currentUser.getRole() == Role.ROLE_UNIVERSITY_REP && dbUser.getUniversity() != null)
+                ? dbUser.getUniversity().getUniversityId()
+                : null;
+        Long compId = ((currentUser.getRole() == Role.ROLE_COMPANY_REP || currentUser.getRole() == Role.ROLE_COMPANY_MENTOR) 
+                && dbUser.getCompany() != null)
+                ? dbUser.getCompany().getCompanyId()
+                : null;
+
+        if (currentUser.getRole() == Role.ROLE_UNIVERSITY_REP && uniId == null) {
+            throw new ResourceForbiddenException("University Representative must be assigned to a university");
+        }
+        if ((currentUser.getRole() == Role.ROLE_COMPANY_REP || currentUser.getRole() == Role.ROLE_COMPANY_MENTOR) && compId == null) {
+            throw new ResourceForbiddenException("Company Staff must be assigned to a company");
+        }
+
+        if (searchParam != null) {
+            if (roleEnum != null) {
+                if (currentUser.getRole() == Role.ROLE_MENTOR) {
+                    if (roleEnum != Role.ROLE_UNIVERSITY_REP && roleEnum != Role.ROLE_TEACHER &&
+                            roleEnum != Role.ROLE_COMPANY_MENTOR && roleEnum != Role.ROLE_COMPANY_REP) {
+                        throw new ResourceForbiddenException(
+                                "Mentor can only view staff accounts (University Rep, Teacher, Company Rep, Company Mentor)");
+                    }
+                }
+                usersPage = userRepository.searchUsers(roleEnum, uniId, compId, searchParam, pageable);
+            } else {
+                if (currentUser.getRole() == Role.ROLE_MENTOR) {
+                    List<Role> mentorRoles = Arrays.asList(Role.ROLE_UNIVERSITY_REP, Role.ROLE_TEACHER,
+                            Role.ROLE_COMPANY_MENTOR, Role.ROLE_COMPANY_REP);
+                    usersPage = userRepository.searchUsersInRoles(mentorRoles, uniId, compId, searchParam, pageable);
+                } else {
+                    usersPage = userRepository.searchUsers(null, uniId, compId, searchParam, pageable);
+                }
+            }
         } else {
-            usersPage = userRepository.findAllByIsDeletedFalseAndIsActiveTrue(pageable);
+            if (roleEnum != null) {
+                if (currentUser.getRole() == Role.ROLE_MENTOR) {
+                    if (roleEnum != Role.ROLE_UNIVERSITY_REP && roleEnum != Role.ROLE_TEACHER &&
+                            roleEnum != Role.ROLE_COMPANY_MENTOR && roleEnum != Role.ROLE_COMPANY_REP) {
+                        throw new ResourceForbiddenException(
+                                "Mentor can only view staff accounts (University Rep, Teacher, Company Rep, Company Mentor)");
+                    }
+                    usersPage = userRepository.findByRoleAndIsDeletedFalseAndIsActiveTrue(roleEnum, pageable);
+                } else if (currentUser.getRole() == Role.ROLE_UNIVERSITY_REP) {
+                    usersPage = userRepository.findByRoleAndUniversity_UniversityIdAndIsDeletedFalseAndIsActiveTrue(
+                            roleEnum, uniId, pageable);
+                } else if (currentUser.getRole() == Role.ROLE_COMPANY_REP || currentUser.getRole() == Role.ROLE_COMPANY_MENTOR) {
+                    usersPage = userRepository.searchUsers(roleEnum, null, compId, "", pageable);
+                } else {
+                    usersPage = userRepository.findByRoleAndIsDeletedFalseAndIsActiveTrue(roleEnum, pageable);
+                }
+            } else {
+                if (currentUser.getRole() == Role.ROLE_MENTOR) {
+                    usersPage = userRepository.findByRoleInAndIsDeletedFalseAndIsActiveTrue(
+                            Arrays.asList(Role.ROLE_UNIVERSITY_REP, Role.ROLE_TEACHER, Role.ROLE_COMPANY_MENTOR,
+                                    Role.ROLE_COMPANY_REP),
+                            pageable);
+                } else if (currentUser.getRole() == Role.ROLE_UNIVERSITY_REP) {
+                    usersPage = userRepository.findAllByUniversity_UniversityIdAndIsDeletedFalseAndIsActiveTrue(
+                            uniId, pageable);
+                } else if (currentUser.getRole() == Role.ROLE_COMPANY_REP || currentUser.getRole() == Role.ROLE_COMPANY_MENTOR) {
+                    usersPage = userRepository.searchUsers(null, null, compId, "", pageable);
+                } else {
+                    usersPage = userRepository.findAllByIsDeletedFalseAndIsActiveTrue(pageable);
+                }
+            }
         }
 
         return PaginationUtil.toPageResponseDTO(usersPage, UserMapper::toDto);
@@ -73,9 +149,29 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public ApiResponse<UserResponse> createProfile(UserCreateRequest userCreateRequest) throws ResourceBadRequestException, ResourceConflictException {
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResponse<UserResponse> createProfile(UserCreateRequest userCreateRequest)
+            throws ResourceBadRequestException, ResourceConflictException, ResourceForbiddenException {
         Role roleEnum = null;
         Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
+
+        try {
+            roleEnum = Role.valueOf(userCreateRequest.getRole().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            ValidationErrorUtil.addError(errorList, "role", "Invalid role value");
+            throw new ResourceBadRequestException("BAD_REQUEST", errorList);
+        }
+
+        User currentUser = currentUserUtil.getCurrentUser();
+        if (currentUser.getRole() == Role.ROLE_MENTOR) {
+            if (roleEnum != Role.ROLE_UNIVERSITY_REP && roleEnum != Role.ROLE_TEACHER &&
+                    roleEnum != Role.ROLE_COMPANY_MENTOR && roleEnum != Role.ROLE_COMPANY_REP) {
+                throw new ResourceForbiddenException(
+                        "Mentor can only create staff accounts (University Rep, Teacher, Company Rep, Company Mentor)");
+            }
+        } else if (currentUser.getRole() != Role.ROLE_ADMIN) {
+            throw new ResourceForbiddenException("Unauthorized to create user profile");
+        }
 
         if (userRepository.existsByUsernameAndIsDeletedFalseAndIsActiveTrue(userCreateRequest.getUsername())) {
             ValidationErrorUtil.addError(errorList, "username", "Username already exists");
@@ -87,13 +183,6 @@ public class UserServiceImpl implements IUserService {
 
         if (ValidationErrorUtil.hasErrors(errorList)) {
             throw new ResourceConflictException("CONFLICT", errorList);
-        }
-
-        try {
-            roleEnum = Role.valueOf(userCreateRequest.getRole().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            ValidationErrorUtil.addError(errorList, "role", "Invalid role value");
-            throw new ResourceBadRequestException("BAD_REQUEST", errorList);
         }
 
         if (roleEnum == Role.ROLE_STUDENT) {
@@ -110,7 +199,7 @@ public class UserServiceImpl implements IUserService {
             }
             if (userCreateRequest.getDateOfBirth() == null) {
                 ValidationErrorUtil.addError(errorList, "dateOfBirth", "Date of birth is required");
-            } else if (userCreateRequest.getDateOfBirth().isAfter(java.time.LocalDate.now())) {
+            } else if (userCreateRequest.getDateOfBirth().isAfter(LocalDate.now())) {
                 ValidationErrorUtil.addError(errorList, "dateOfBirth", "Date of birth must be in the past");
             }
             if (userCreateRequest.getAddress() == null || userCreateRequest.getAddress().isBlank()) {
@@ -119,12 +208,18 @@ public class UserServiceImpl implements IUserService {
             if (ValidationErrorUtil.hasErrors(errorList)) {
                 throw new ResourceBadRequestException("BAD_REQUEST", errorList);
             }
-        } else if (roleEnum == Role.ROLE_MENTOR) {
+        } else if (roleEnum == Role.ROLE_TEACHER || roleEnum == Role.ROLE_UNIVERSITY_REP
+                || roleEnum == Role.ROLE_COMPANY_MENTOR || roleEnum == Role.ROLE_COMPANY_REP) {
             if (userCreateRequest.getDepartment() == null || userCreateRequest.getDepartment().isBlank()) {
                 ValidationErrorUtil.addError(errorList, "department", "Department is required");
             }
-            if (userCreateRequest.getAcademicRank() == null || userCreateRequest.getAcademicRank().isBlank()) {
+            if ((roleEnum == Role.ROLE_TEACHER || roleEnum == Role.ROLE_UNIVERSITY_REP)
+                    && (userCreateRequest.getAcademicRank() == null || userCreateRequest.getAcademicRank().isBlank())) {
                 ValidationErrorUtil.addError(errorList, "academicRank", "Academic rank is required");
+            }
+            if ((roleEnum == Role.ROLE_COMPANY_MENTOR || roleEnum == Role.ROLE_COMPANY_REP)
+                    && (userCreateRequest.getPosition() == null || userCreateRequest.getPosition().isBlank())) {
+                ValidationErrorUtil.addError(errorList, "position", "Position is required");
             }
             if (ValidationErrorUtil.hasErrors(errorList)) {
                 throw new ResourceBadRequestException("BAD_REQUEST", errorList);
@@ -140,6 +235,13 @@ public class UserServiceImpl implements IUserService {
         users.setPhoneNumber(userCreateRequest.getPhoneNumber());
         users.setRole(roleEnum);
 
+        if (userCreateRequest.getUniversityId() != null) {
+            universityRepository.findById(userCreateRequest.getUniversityId()).ifPresent(users::setUniversity);
+        }
+        if (userCreateRequest.getCompanyId() != null) {
+            companyRepository.findById(userCreateRequest.getCompanyId()).ifPresent(users::setCompany);
+        }
+
         userRepository.save(users);
 
         if (roleEnum == Role.ROLE_STUDENT) {
@@ -151,11 +253,13 @@ public class UserServiceImpl implements IUserService {
             student.setDateOfBirth(userCreateRequest.getDateOfBirth());
             student.setAddress(userCreateRequest.getAddress());
             studentRepository.save(student);
-        } else if (roleEnum == Role.ROLE_MENTOR) {
+        } else if (roleEnum == Role.ROLE_TEACHER || roleEnum == Role.ROLE_UNIVERSITY_REP
+                || roleEnum == Role.ROLE_COMPANY_MENTOR || roleEnum == Role.ROLE_COMPANY_REP) {
             pka.edu.entity.Mentor mentor = new pka.edu.entity.Mentor();
             mentor.setUser(users);
             mentor.setDepartment(userCreateRequest.getDepartment());
             mentor.setAcademicRank(userCreateRequest.getAcademicRank());
+            mentor.setPosition(userCreateRequest.getPosition());
             mentorRepository.save(mentor);
         }
 
@@ -163,48 +267,81 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public ApiResponse<UserResponse> updateProfile(Long id, UserUpdateRequest userUpdateRequest) throws ResourceConflictException, ResourceNotFoundException, ResourceForbiddenException {
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResponse<UserResponse> updateProfile(Long id, UserUpdateRequest userUpdateRequest)
+            throws ResourceConflictException, ResourceNotFoundException, ResourceForbiddenException {
         Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
         User currentUser = currentUserUtil.getCurrentUser();
-        User existingUser;
+        User existingUser = userRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
 
-        if (currentUser.getRole() == Role.ROLE_ADMIN) {
-            existingUser = userRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        } else {
+        if (currentUser.getRole() != Role.ROLE_ADMIN) {
             if (!currentUser.getUserId().equals(id)) {
-                throw new ResourceForbiddenException("You cannot update other user's profile");
+                if (currentUser.getRole() == Role.ROLE_MENTOR) {
+                    if (existingUser.getRole() == Role.ROLE_ADMIN || existingUser.getRole() == Role.ROLE_STUDENT) {
+                        throw new ResourceForbiddenException("Mentor cannot update Admin or Student profiles");
+                    }
+                } else {
+                    throw new ResourceForbiddenException("You cannot update other user's profile");
+                }
             }
-            existingUser = currentUser;
         }
 
-        if (userRepository.existsByUsernameAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(userUpdateRequest.getUsername(), id)) {
+        if (userRepository.existsByUsernameAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(userUpdateRequest.getUsername(),
+                id)) {
             errorList.put("username", "Username already exists");
         }
 
-        if (userRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(userUpdateRequest.getEmail(), id)) {
+        if (userRepository.existsByEmailAndIsDeletedFalseAndIsActiveTrueAndUserIdNot(userUpdateRequest.getEmail(),
+                id)) {
             errorList.put("email", "Email already exists");
         }
         if (ValidationErrorUtil.hasErrors(errorList)) {
             throw new ResourceConflictException("CONFLICT", errorList);
         }
+
         UserMapper.updateFromDto(existingUser, userUpdateRequest);
+
+        if (userUpdateRequest.getUniversityId() != null) {
+            universityRepository.findById(userUpdateRequest.getUniversityId()).ifPresent(existingUser::setUniversity);
+        }
+        if (userUpdateRequest.getCompanyId() != null) {
+            companyRepository.findById(userUpdateRequest.getCompanyId()).ifPresent(existingUser::setCompany);
+        }
+
         userRepository.save(existingUser);
 
         if (existingUser.getRole() == Role.ROLE_STUDENT) {
-            pka.edu.entity.Student student = studentRepository.findById(existingUser.getUserId()).orElse(new pka.edu.entity.Student());
+            pka.edu.entity.Student student = studentRepository.findById(existingUser.getUserId())
+                    .orElse(new pka.edu.entity.Student());
             student.setUser(existingUser);
-            if (userUpdateRequest.getStudentCode() != null) student.setStudentCode(userUpdateRequest.getStudentCode());
-            if (userUpdateRequest.getMajor() != null) student.setMajor(userUpdateRequest.getMajor());
-            if (userUpdateRequest.getClassRoom() != null) student.setClassRoom(userUpdateRequest.getClassRoom());
-            if (userUpdateRequest.getDateOfBirth() != null) student.setDateOfBirth(userUpdateRequest.getDateOfBirth());
-            if (userUpdateRequest.getAddress() != null) student.setAddress(userUpdateRequest.getAddress());
+            if (userUpdateRequest.getStudentCode() != null)
+                student.setStudentCode(userUpdateRequest.getStudentCode());
+            if (userUpdateRequest.getMajor() != null)
+                student.setMajor(userUpdateRequest.getMajor());
+            if (userUpdateRequest.getClassRoom() != null)
+                student.setClassRoom(userUpdateRequest.getClassRoom());
+            if (userUpdateRequest.getDateOfBirth() != null)
+                student.setDateOfBirth(userUpdateRequest.getDateOfBirth());
+            if (userUpdateRequest.getAddress() != null)
+                student.setAddress(userUpdateRequest.getAddress());
+            if (userUpdateRequest.getExternalMentorName() != null)
+                student.setExternalMentorName(userUpdateRequest.getExternalMentorName());
+            if (userUpdateRequest.getExternalMentorPhone() != null)
+                student.setExternalMentorPhone(userUpdateRequest.getExternalMentorPhone());
             studentRepository.save(student);
-        } else if (existingUser.getRole() == Role.ROLE_MENTOR) {
-            pka.edu.entity.Mentor mentor = mentorRepository.findById(existingUser.getUserId()).orElse(new pka.edu.entity.Mentor());
+        } else if (existingUser.getRole() == Role.ROLE_TEACHER || existingUser.getRole() == Role.ROLE_UNIVERSITY_REP
+                || existingUser.getRole() == Role.ROLE_COMPANY_MENTOR
+                || existingUser.getRole() == Role.ROLE_COMPANY_REP) {
+            pka.edu.entity.Mentor mentor = mentorRepository.findById(existingUser.getUserId())
+                    .orElse(new pka.edu.entity.Mentor());
             mentor.setUser(existingUser);
-            if (userUpdateRequest.getDepartment() != null) mentor.setDepartment(userUpdateRequest.getDepartment());
-            if (userUpdateRequest.getAcademicRank() != null) mentor.setAcademicRank(userUpdateRequest.getAcademicRank());
+            if (userUpdateRequest.getDepartment() != null)
+                mentor.setDepartment(userUpdateRequest.getDepartment());
+            if (userUpdateRequest.getAcademicRank() != null)
+                mentor.setAcademicRank(userUpdateRequest.getAcademicRank());
+            if (userUpdateRequest.getPosition() != null)
+                mentor.setPosition(userUpdateRequest.getPosition());
             mentorRepository.save(mentor);
         }
 
@@ -212,9 +349,18 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public ApiResponse<UserResponse> updateStatus(Long id) throws ResourceNotFoundException {
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResponse<UserResponse> updateStatus(Long id)
+            throws ResourceNotFoundException, ResourceForbiddenException {
+        User currentUser = currentUserUtil.getCurrentUser();
         User users = userRepository.findByUserIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        if (currentUser.getRole() == Role.ROLE_MENTOR) {
+            if (users.getRole() == Role.ROLE_ADMIN || users.getRole() == Role.ROLE_STUDENT) {
+                throw new ResourceForbiddenException("Mentor cannot update status of Admin or Student");
+            }
+        }
 
         users.setActive(!users.isActive());
         userRepository.save(users);
@@ -222,41 +368,60 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public ApiResponse<UserResponse> updateRole(Long id, UpdateRoleRequest request) throws ResourceNotFoundException, ResourceForbiddenException, ResourceBadRequestException {
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResponse<UserResponse> updateRole(Long id, UpdateRoleRequest request)
+            throws ResourceNotFoundException, ResourceForbiddenException, ResourceBadRequestException {
         Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
+        User currentUser = currentUserUtil.getCurrentUser();
         User users = userRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
 
         if (users.getRole() == Role.ROLE_ADMIN) {
             throw new ResourceForbiddenException("Cannot change role of an admin user");
         }
+
+        if (currentUser.getRole() == Role.ROLE_MENTOR) {
+            if (users.getRole() == Role.ROLE_STUDENT) {
+                throw new ResourceForbiddenException("Mentor cannot update role of Student");
+            }
+        }
         try {
             Role newRole = Role.valueOf(request.getRole().toUpperCase());
+            if (currentUser.getRole() == Role.ROLE_MENTOR) {
+                if (newRole == Role.ROLE_ADMIN || newRole == Role.ROLE_STUDENT) {
+                    throw new ResourceForbiddenException("Mentor can only assign staff roles");
+                }
+            }
             Role oldRole = users.getRole();
-            
+
             if (newRole != oldRole) {
                 // Delete old role details
                 if (oldRole == Role.ROLE_STUDENT) {
                     studentRepository.findById(users.getUserId()).ifPresent(studentRepository::delete);
-                } else if (oldRole == Role.ROLE_MENTOR) {
+                } else if (oldRole == Role.ROLE_TEACHER || oldRole == Role.ROLE_UNIVERSITY_REP
+                        || oldRole == Role.ROLE_COMPANY_MENTOR || oldRole == Role.ROLE_COMPANY_REP) {
                     mentorRepository.findById(users.getUserId()).ifPresent(mentorRepository::delete);
                 }
-                
+
                 // Create new role details
                 users.setRole(newRole);
-                
-                // Must save user first so that role change is persisted before cascading or creating related entities
-                userRepository.save(users); 
-                
+
+                // Must save user first so that role change is persisted before cascading or
+                // creating related entities
+                userRepository.save(users);
+
                 if (newRole == Role.ROLE_STUDENT) {
                     pka.edu.entity.Student newStudent = new pka.edu.entity.Student();
                     newStudent.setUser(users);
-                    // Lỗi: Các trường bắt buộc như studentCode đang trống có thể gây DataIntegrityViolationException.
-                    // Tạm thời vô hiệu hóa tài khoản và tạo một mã sinh viên ngẫu nhiên để pass validation. Admin/User cần update sau.
+                    // Lỗi: Các trường bắt buộc như studentCode đang trống có thể gây
+                    // DataIntegrityViolationException.
+                    // Tạm thời vô hiệu hóa tài khoản và tạo một mã sinh viên ngẫu nhiên để pass
+                    // validation. Admin/User cần update sau.
                     newStudent.setStudentCode("TEMP_STU_" + users.getUserId());
                     users.setActive(false);
                     studentRepository.save(newStudent);
-                } else if (newRole == Role.ROLE_MENTOR) {
+                } else if (newRole == Role.ROLE_TEACHER || newRole == Role.ROLE_UNIVERSITY_REP
+                        || newRole == Role.ROLE_COMPANY_MENTOR || newRole == Role.ROLE_COMPANY_REP) {
                     pka.edu.entity.Mentor newMentor = new pka.edu.entity.Mentor();
                     newMentor.setUser(users);
                     // Tạm thời vô hiệu hóa tài khoản để Admin/User cần update department sau.
@@ -273,9 +438,17 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public ApiResponse<String> deleteProfile(Long id) throws ResourceNotFoundException {
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResponse<String> deleteProfile(Long id) throws ResourceNotFoundException, ResourceForbiddenException {
+        User currentUser = currentUserUtil.getCurrentUser();
         User users = userRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        if (currentUser.getRole() == Role.ROLE_MENTOR) {
+            if (users.getRole() == Role.ROLE_ADMIN || users.getRole() == Role.ROLE_STUDENT) {
+                throw new ResourceForbiddenException("Mentor cannot delete Admin or Student");
+            }
+        }
 
         users.setDeleted(true);
         users.setActive(false);
@@ -284,6 +457,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResponse<String> changePassword(ChangePasswordRequest request) throws ResourceBadRequestException {
         User user = currentUserUtil.getCurrentUser();
         Map<String, String> errorList = ValidationErrorUtil.createErrorMap();
@@ -298,9 +472,16 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public ApiResponse<String> uploadAvatar(Long userId, MultipartFile file) throws ResourceNotFoundException, IOException {
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResponse<String> uploadAvatar(Long userId, MultipartFile file)
+            throws ResourceNotFoundException, IOException, ResourceForbiddenException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        User currentUser = currentUserUtil.getCurrentUser();
+        if (currentUser.getRole() != Role.ROLE_ADMIN && !currentUser.getUserId().equals(userId)) {
+            throw new ResourceForbiddenException("You do not have permission to upload avatar for this user");
+        }
 
         String avatarUrl = fileUploadService.uploadFile(file);
 

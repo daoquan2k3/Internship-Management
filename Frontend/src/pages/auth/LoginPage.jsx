@@ -59,7 +59,9 @@ const LoginPage = () => {
     setIsLoading(true);
     setErrorMsg("");
     try {
-      await login(data.username, data.password);
+      const username = data.username.trim();
+      const password = data.password.trim();
+      await login(username, password);
       navigate("/dashboard");
     } catch (error) {
       if (error.response?.status === 401)

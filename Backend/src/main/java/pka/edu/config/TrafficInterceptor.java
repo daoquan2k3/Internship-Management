@@ -18,12 +18,17 @@ public class TrafficInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (request.getMethod().equals("GET")) {
-            LocalDate today = LocalDate.now();
-            SiteTraffic traffic = trafficRepository.findById(today)
-                    .orElse(new SiteTraffic(today, 0L));
+            try {
+                LocalDate today = LocalDate.now();
+                SiteTraffic traffic = trafficRepository.findById(today)
+                        .orElse(new SiteTraffic(today, 0L));
 
-            traffic.setVisitCount(traffic.getVisitCount() + 1);
-            trafficRepository.save(traffic);
+                traffic.setVisitCount(traffic.getVisitCount() + 1);
+                trafficRepository.save(traffic);
+            } catch (Exception e) {
+                // Ignore duplicate key or other DB exceptions to prevent crashing the API
+                // System.out.println("TrafficInterceptor error: " + e.getMessage());
+            }
         }
         return true;
     }

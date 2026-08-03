@@ -2,7 +2,7 @@ package pka.edu.service.impl;
 
 import pka.edu.entity.User;
 import pka.edu.event.NotificationEventDTO;
-import pka.edu.repository.IUserRepository;
+import pka.edu.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class NotificationListener {
 
     private final NotificationService notificationService;
-    private final IUserRepository userRepository;
+    private final UserRepository userRepository;
 
     @RabbitListener(queues = "${rabbitmq.queue.notification}")
     public void handleNotificationEvent(NotificationEventDTO eventDTO) {

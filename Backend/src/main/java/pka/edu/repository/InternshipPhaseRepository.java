@@ -12,11 +12,14 @@ import java.util.Optional;
 
 @Repository
 public interface InternshipPhaseRepository extends JpaRepository<InternshipPhase, Long> {
-    Optional<InternshipPhase> findByPhaseIdAndIsDeletedFalse(Long phaseId);
+    @Query("SELECT i FROM InternshipPhase i WHERE i.phaseId = :phaseId AND i.isDeleted = false")
+    Optional<InternshipPhase> findByPhaseIdAndIsDeletedFalse(@Param("phaseId") Long phaseId);
 
-    boolean existsByPhaseNameIgnoreCaseAndIsDeletedFalse(String phaseName);
+    @Query("SELECT CASE WHEN COUNT(i) > 0 THEN TRUE ELSE FALSE END FROM InternshipPhase i WHERE LOWER(i.phaseName) = LOWER(:phaseName) AND i.isDeleted = false")
+    boolean existsByPhaseNameIgnoreCaseAndIsDeletedFalse(@Param("phaseName") String phaseName);
 
-    boolean existsByPhaseNameIgnoreCaseAndIsDeletedFalseAndPhaseIdNot(String phaseName, Long phaseId);
+    @Query("SELECT CASE WHEN COUNT(i) > 0 THEN TRUE ELSE FALSE END FROM InternshipPhase i WHERE LOWER(i.phaseName) = LOWER(:phaseName) AND i.isDeleted = false AND i.phaseId <> :phaseId")
+    boolean existsByPhaseNameIgnoreCaseAndIsDeletedFalseAndPhaseIdNot(@Param("phaseName") String phaseName, @Param("phaseId") Long phaseId);
 
     @Query("select i from InternshipPhase i where " +
             "lower(i.phaseName) like lower(concat('%', :keyword, '%'))")
