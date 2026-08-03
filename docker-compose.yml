@@ -34,6 +34,8 @@ services:
     depends_on:
       - redis
       - rabbitmq
+    env_file:
+      - .env
     environment:
       # Spring Boot sẽ kết nối với Redis & RabbitMQ thông qua TÊN SERVICE trong Docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/internship_db
@@ -46,12 +48,6 @@ services:
       - SPRING_RABBITMQ_USERNAME=admin
       - SPRING_RABBITMQ_PASSWORD=admin123
       - SPRING_PROFILES_ACTIVE=prod
-      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
-      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
-      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
-      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
     restart: unless-stopped
 
   frontend:
