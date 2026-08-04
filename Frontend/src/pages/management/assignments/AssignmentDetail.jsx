@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { Box, Typography, Grid, Chip, Button, CircularProgress, Stack } from "@mui/material";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
@@ -11,7 +11,6 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import FlagIcon from "@mui/icons-material/Flag";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { AuthContext } from "../../../context/AuthContext";
 
 import AssignmentInfoCard from "./components/AssignmentInfoCard";
 import StudentListCard from "./components/StudentListCard";
@@ -23,7 +22,7 @@ const AssignmentDetail = () => {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const { user } = useContext(AuthContext);
+
 
   useEffect(() => {
     const fetchDetail = async () => {
