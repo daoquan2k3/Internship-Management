@@ -5,7 +5,8 @@ import { AuthContext } from "../../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  Box, Button, TextField, Typography, Stack, Paper, Divider, IconButton, Chip, Avatar, Grid, AvatarGroup, Tooltip
+  Box, Button, TextField, Typography, Stack, Paper, IconButton, Chip, Avatar, AvatarGroup, Tooltip,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 } from "@mui/material";
 
 // Import Icons
@@ -17,7 +18,6 @@ import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
-import GroupIcon from '@mui/icons-material/Group';
 
 import AssignmentFormModal from "./components/AssignmentFormModal";
 
@@ -181,79 +181,97 @@ const InternshipAssignmentsManagement = () => {
         <TextField fullWidth variant="outlined" placeholder="Tìm kiếm đề tài..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} size="small" sx={{ '& fieldset': { border: 'none' }, bgcolor: "background.paper", borderRadius: 2 }} />
       </Paper>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)", xl: "repeat(3, 1fr)" }, gap: 4 }}>
-        <AnimatePresence>
-          {data.length > 0 ? data.map((assignment, index) => (
-            <motion.div key={assignment.id} initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.4, delay: index * 0.05 }} whileHover={{ scale: 1.02, y: -5 }} style={{ display: 'flex' }}>
-              <Paper sx={{ p: 3, borderRadius: 4, position: "relative", overflow: "hidden",    display: 'flex', flexDirection: 'column', width: '100%' }}>
-                <Box sx={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, borderRadius: '50%', background: 'rgba(26, 35, 126, 0.03)', zIndex: 0 }} />
-
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2, position: 'relative', zIndex: 1 }}>
-                  {getStatusChip(assignment.status)}
-                </Stack>
-
-                <Typography variant="h6" sx={{ fontWeight: 800, color: "primary.light", mb: 2, position: 'relative', zIndex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {assignment.assignmentTitle}
-                </Typography>
-
-                <Box sx={{ bgcolor: "background.default", p: 2, borderRadius: 3, mb: 3, flexGrow: 1, position: 'relative', zIndex: 1 }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Avatar
-                          src={assignment.mentorAvatarUrl}
-                          sx={{ width: 32, height: 32, bgcolor: '#fce7f3', color: '#db2777' }}
-                        >
-                          {!assignment.mentorAvatarUrl && <SupervisorAccountIcon fontSize="small" />}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="caption" sx={{ color: "text.secondary", display: 'block', lineHeight: 1 }}>Mentor Hướng dẫn</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary" }}>{assignment.mentorName}</Typography>
-                        </Box>
-                      </Stack>
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <Divider sx={{ my: 0.5, borderStyle: 'dashed' }} />
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
-                        <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <GroupIcon fontSize="small" /> Nhóm sinh viên ({assignment.students?.length || 0})
-                        </Typography>
-
-                        <AvatarGroup max={4} sx={{ '& .MuiAvatar-root': { width: 32, height: 32, fontSize: '0.875rem', fontWeight: 600, borderColor: 'background.paper' } }}>
-                          {assignment.students && assignment.students.length > 0 ? (
-                            assignment.students.map((student, sIdx) => (
-                              <Tooltip title={`${student.name} - ${student.code}`} key={student.id} placement="top">
-                                <Avatar src={student.avatarUrl} sx={{ bgcolor: getAvatarColor(sIdx) }}>
-                                  {!student.avatarUrl && student.name?.charAt(0).toUpperCase()}
-                                </Avatar>
-                              </Tooltip>
-                            ))
-                          ) : (
-                            <Avatar sx={{ bgcolor: '#cbd5e1' }}>?</Avatar>
-                          )}
-                        </AvatarGroup>
-                      </Stack>
-                    </Grid>
-                  </Grid>
-                </Box>
-
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
-                  <Button startIcon={<VisibilityIcon />} variant="text" onClick={() => navigate(`/admin/assignments/${assignment.id}`)} sx={{ fontWeight: 700, borderRadius: 2 }}>Xem chi tiết</Button>
-                  {canEdit && (
-                    <IconButton size="small" color="primary" onClick={() => handleOpenModal(assignment)} sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)' }}><EditIcon fontSize="small" /></IconButton>
-                  )}
-                </Stack>
-              </Paper>
-            </motion.div>
-          )) : (
-            <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 8 }}>
-              <AssignmentIndIcon sx={{ fontSize: 64, color: '#cbd5e1', mb: 2 }} />
-              <Typography variant="h6" color="text.secondary">Chưa có đề tài / nhóm phân công nào.</Typography>
-            </Box>
-          )}
-        </AnimatePresence>
-      </Box>
+      <TableContainer component={Paper} sx={{ borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
+        <Table sx={{ minWidth: 650 }} aria-label="assignments table">
+          <TableHead sx={{ bgcolor: 'rgba(26, 35, 126, 0.03)' }}>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Đề tài</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Trạng thái</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Mentor</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Sinh viên</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: 'text.secondary', textAlign: 'center' }}>Thao tác</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <AnimatePresence>
+              {data.length > 0 ? data.map((assignment, index) => (
+                <TableRow
+                  key={assignment.id}
+                  component={motion.tr}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { bgcolor: 'rgba(0,0,0,0.02)' } }}
+                >
+                  <TableCell sx={{ maxWidth: 300 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {assignment.assignmentTitle}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    {getStatusChip(assignment.status)}
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Avatar
+                        src={assignment.mentorAvatarUrl}
+                        sx={{ width: 32, height: 32, bgcolor: '#fce7f3', color: '#db2777' }}
+                      >
+                        {!assignment.mentorAvatarUrl && <SupervisorAccountIcon fontSize="small" />}
+                      </Avatar>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{assignment.mentorName}</Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <AvatarGroup max={4} sx={{ '& .MuiAvatar-root': { width: 32, height: 32, fontSize: '0.875rem', fontWeight: 600, borderColor: 'background.paper' } }}>
+                        {assignment.students && assignment.students.length > 0 ? (
+                          assignment.students.map((student, sIdx) => (
+                            <Tooltip title={`${student.name} - ${student.code}`} key={student.id} placement="top">
+                              <Avatar src={student.avatarUrl} sx={{ bgcolor: getAvatarColor(sIdx) }}>
+                                {!student.avatarUrl && student.name?.charAt(0).toUpperCase()}
+                              </Avatar>
+                            </Tooltip>
+                          ))
+                        ) : (
+                          <Avatar sx={{ bgcolor: '#cbd5e1' }}>?</Avatar>
+                        )}
+                      </AvatarGroup>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                        ({assignment.students?.length || 0})
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Stack direction="row" justifyContent="center" spacing={1}>
+                      <Tooltip title="Xem chi tiết">
+                        <IconButton size="small" color="info" onClick={() => navigate(`/admin/assignments/${assignment.id}`)}>
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      {canEdit && (
+                        <Tooltip title="Chỉnh sửa">
+                          <IconButton size="small" color="primary" onClick={() => handleOpenModal(assignment)}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
+                    <AssignmentIndIcon sx={{ fontSize: 64, color: '#cbd5e1', mb: 2 }} />
+                    <Typography variant="h6" color="text.secondary">Chưa có đề tài / nhóm phân công nào.</Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </AnimatePresence>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mt: 6 }}>
         <Button variant="outlined" disabled={page === 0} onClick={() => setPage(p => p - 1)} sx={{ borderRadius: '50px', px: 3 }}>Trang trước</Button>
