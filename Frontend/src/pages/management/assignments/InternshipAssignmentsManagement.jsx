@@ -177,11 +177,11 @@ const InternshipAssignmentsManagement = () => {
         )}
       </Box>
 
-      <Paper sx={{ p: 2, mb: 4, borderRadius: 4, display: "flex", alignItems: "center", boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+      <Paper sx={{ p: 2, mb: 4, borderRadius: 2, display: "flex", alignItems: "center", boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
         <TextField fullWidth variant="outlined" placeholder="Tìm kiếm đề tài..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} size="small" sx={{ '& fieldset': { border: 'none' }, bgcolor: "background.paper", borderRadius: 2 }} />
       </Paper>
 
-      <TableContainer component={Paper} sx={{ borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
+      <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
         <Table sx={{ minWidth: 650 }} aria-label="assignments table">
           <TableHead sx={{ bgcolor: 'rgba(26, 35, 126, 0.03)' }}>
             <TableRow>
