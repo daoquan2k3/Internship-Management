@@ -1,9 +1,9 @@
-import { useState, useEffect, useContext } from "react";
-import { Box, Typography, CircularProgress, Paper, Grid, Stack, Avatar } from "@mui/material";
+import { useState,  useContext } from "react";
+import { Box, Typography, CircularProgress, Paper,  Stack, Avatar } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import GroupWorkIcon from "@mui/icons-material/GroupWork";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+
 import RateReviewIcon from "@mui/icons-material/RateReview";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -12,7 +12,7 @@ import { AuthContext } from "../../context/AuthContext";
 const CompanyMentorDashboard = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const [loading, setLoading] = useState(false);
+  const [loading, ] = useState(false);
 
   if (loading) {
     return (

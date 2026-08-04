@@ -80,28 +80,7 @@ export const userApi = {
   },
 };
 
-export const internshipPhaseApi = {
-  // Get all phases
-  getAllPhases: (search = "", page = 0, size = 10) =>
-    axiosClient.get("/api/v1/internship-phases", {
-      params: { search, page, size },
-    }),
 
-  // Get phase by ID
-  getPhaseById: (phaseId) =>
-    axiosClient.get(`/api/v1/internship-phases/${phaseId}`),
-
-  // Create phase
-  createPhase: (data) => axiosClient.post("/api/v1/internship-phases", data),
-
-  // Update phase
-  updatePhase: (phaseId, data) =>
-    axiosClient.put(`/api/v1/internship-phases/${phaseId}`, data),
-
-  // Delete phase
-  deletePhase: (phaseId) =>
-    axiosClient.delete(`/api/v1/internship-phases/${phaseId}`),
-};
 
 export const internshipAssignmentApi = {
   // Get all assignments
@@ -135,9 +114,9 @@ export const internshipAssignmentApi = {
 
 export const assessmentRoundsApi = {
   // Get all rounds
-  getAllRounds: (search = "", phaseId = "", classId = "", page = 0, size = 10) =>
+  getAllRounds: (search = "", classId = "", page = 0, size = 10) =>
     axiosClient.get("/api/v1/assessment-rounds", {
-      params: { search, phaseId, classId, page, size },
+      params: { search, classId, page, size },
     }),
 
   // Get round by ID

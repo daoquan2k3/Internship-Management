@@ -112,7 +112,6 @@ const SettingsPage = () => {
   const isMounted = useRef(true);
   useEffect(() => {
     isMounted.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProfile();
     return () => {
       isMounted.current = false;

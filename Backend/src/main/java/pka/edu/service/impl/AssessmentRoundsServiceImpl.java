@@ -12,9 +12,7 @@ import pka.edu.exception.ResourceBadRequestException;
 import pka.edu.exception.ResourceConflictException;
 import pka.edu.exception.ResourceNotFoundException;
 import pka.edu.repository.AssessmentRoundsRepository;
-import pka.edu.entity.InternshipPhase;
 import pka.edu.mapper.AssessmentRoundsMapper;
-import pka.edu.repository.InternshipPhaseRepository;
 import pka.edu.service.IAssessmentRoundsService;
 import pka.edu.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +34,6 @@ import java.time.LocalDateTime;
 public class AssessmentRoundsServiceImpl implements IAssessmentRoundsService {
 
     private final AssessmentRoundsRepository assessmentRoundsRepository;
-    private final InternshipPhaseRepository internshipPhaseRepository;
     private final UniversityClassRepository universityClassRepository;
     private final CurrentUserUtil currentUserUtil;
 
@@ -44,9 +41,6 @@ public class AssessmentRoundsServiceImpl implements IAssessmentRoundsService {
     @Transactional(rollbackFor = Exception.class)
     public ApiResponse<AssessmentRoundsResponse> createAssessmentRound(AssessmentRoundCreateRequest request)
             throws ResourceNotFoundException, ResourceConflictException, ResourceForbiddenException {
-        InternshipPhase phase = internshipPhaseRepository.findByPhaseIdAndIsDeletedFalse(request.getPhaseId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Internship phase not found with id: " + request.getPhaseId()));
 
         UniversityClass universityClass = null;
         if (request.getClassId() != null) {
@@ -72,7 +66,7 @@ public class AssessmentRoundsServiceImpl implements IAssessmentRoundsService {
             }
         }
 
-        AssessmentRound assessmentRounds = AssessmentRoundsMapper.toEntity(request, phase, universityClass);
+        AssessmentRound assessmentRounds = AssessmentRoundsMapper.toEntity(request, universityClass);
 
         assessmentRoundsRepository.save(assessmentRounds);
         return new ApiResponse<>(
@@ -84,7 +78,7 @@ public class AssessmentRoundsServiceImpl implements IAssessmentRoundsService {
     }
 
     @Override
-    public PageResponseDTO<AssessmentRoundsResponse> getAllAssessmentRound(String search, Long phaseId, Long classId,
+    public PageResponseDTO<AssessmentRoundsResponse> getAllAssessmentRound(String search, Long classId,
             PageRequestDTO pageRequestDTO) {
         Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "assessmentRound");
 
@@ -97,38 +91,22 @@ public class AssessmentRoundsServiceImpl implements IAssessmentRoundsService {
         if (classId != null && classId != 0) {
             assessmentRoundsPage = assessmentRoundsRepository.findAllByUniversityClass_ClassId(classId, pageable);
         } else if (isTeacher) {
-            if (search != null && !search.isBlank() && phaseId != null) {
-                assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndPhaseIdAndTeacherId(search,
-                        phaseId, teacherId, pageable);
-            } else if (search != null && !search.isBlank()) {
+            if (search != null && !search.isBlank()) {
                 assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndTeacherId(search, teacherId,
-                        pageable);
-            } else if (phaseId != null && phaseId != 0) {
-                assessmentRoundsPage = assessmentRoundsRepository.findAllByPhase_PhaseIdAndTeacherId(phaseId, teacherId,
                         pageable);
             } else {
                 assessmentRoundsPage = assessmentRoundsRepository.findAllByTeacherId(teacherId, pageable);
             }
         } else if (currentUser.getRole() == Role.ROLE_UNIVERSITY_REP && currentUser.getUniversity() != null) {
             Long universityId = currentUser.getUniversity().getUniversityId();
-            if (search != null && !search.isBlank() && phaseId != null) {
-                assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndPhaseIdAndUniversityId(search,
-                        phaseId, universityId, pageable);
-            } else if (search != null && !search.isBlank()) {
+            if (search != null && !search.isBlank()) {
                 assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndUniversityId(search, universityId,
                         pageable);
-            } else if (phaseId != null && phaseId != 0) {
-                assessmentRoundsPage = assessmentRoundsRepository.findAllByPhase_PhaseIdAndUniversityId(phaseId,
-                        universityId, pageable);
             } else {
                 assessmentRoundsPage = assessmentRoundsRepository.findAllByUniversityId(universityId, pageable);
             }
-        } else if (search != null && !search.isBlank() && phaseId != null) {
-            assessmentRoundsPage = assessmentRoundsRepository.findAllByKeywordAndPhaseId(search, phaseId, pageable);
         } else if (search != null && !search.isBlank()) {
             assessmentRoundsPage = assessmentRoundsRepository.findAllByKeyword(search, pageable);
-        } else if (phaseId != null && phaseId != 0) {
-            assessmentRoundsPage = assessmentRoundsRepository.findAllByPhase_PhaseId(phaseId, pageable);
         } else {
             assessmentRoundsPage = assessmentRoundsRepository.findAll(pageable);
         }

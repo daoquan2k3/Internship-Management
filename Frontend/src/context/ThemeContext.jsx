@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { createAppTheme } from '../theme/theme';
 
 const ThemeContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useThemeContext = () => useContext(ThemeContext);
 
 export const CustomThemeProvider = ({ children }) => {

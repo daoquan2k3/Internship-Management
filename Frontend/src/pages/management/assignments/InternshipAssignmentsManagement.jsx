@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { internshipAssignmentApi } from "../../../api/resourceApi";
+import { internshipAssignmentApi, mentorApi, studentApi } from "../../../api/resourceApi";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,7 +24,7 @@ import AssignmentFormModal from "./components/AssignmentFormModal";
 const InternshipAssignmentsManagement = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const isAdmin = user?.role === "ADMIN" || user?.role === "ROLE_ADMIN";
+  const canEdit = user?.role === "ADMIN" || user?.role === "ROLE_ADMIN" || user?.role === "COMPANY_REP" || user?.role === "ROLE_COMPANY_REP";
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,14 +35,16 @@ const InternshipAssignmentsManagement = () => {
   const [openModal, setOpenModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
 
+
+  const [mentors, setMentors] = useState([]);
+  const [students, setStudents] = useState([]);
+
   const [formData, setFormData] = useState({
     assignmentTitle: "",
     assignmentDescription: "",
     mentorId: "",
-    phaseId: "",
     studentIds: [],
     dueDate: "",
-    status: "PENDING",
   });
 
   useEffect(() => {
@@ -59,6 +61,23 @@ const InternshipAssignmentsManagement = () => {
       }
     };
     fetchAssignmentsEffect();
+
+    const fetchDropdowns = async () => {
+      try {
+        const [mentorRes, studentRes] = await Promise.all([
+          mentorApi.getAllMentors(0, 1000, ""),
+          studentApi.getAllStudents(0, 1000, "")
+        ]);
+        if (isMounted) {
+          setMentors(mentorRes?.content || mentorRes?.data?.content || []);
+          setStudents(studentRes?.content || studentRes?.data?.content || []);
+        }
+      } catch (err) {
+        console.error("Lỗi tải dữ liệu dropdown:", err);
+      }
+    };
+    fetchDropdowns();
+
     return () => { isMounted = false; };
   }, [page, rowsPerPage, search]);
 
@@ -86,15 +105,13 @@ const InternshipAssignmentsManagement = () => {
         assignmentTitle: assignment.assignmentTitle || "",
         assignmentDescription: assignment.assignmentDescription || "",
         mentorId: assignment.mentorId || "",
-        phaseId: assignment.phaseId || "",
         studentIds: assignment.students ? assignment.students.map(s => s.id) : [],
         dueDate: formattedDate || "",
-        status: assignment.status || "PENDING",
       });
     } else {
       setEditingAssignment(null);
       setFormData({
-        assignmentTitle: "", assignmentDescription: "", mentorId: "", phaseId: "", studentIds: [], dueDate: ""
+        assignmentTitle: "", assignmentDescription: "", mentorId: "", studentIds: [], dueDate: ""
       });
     }
     setOpenModal(true);
@@ -153,7 +170,7 @@ const InternshipAssignmentsManagement = () => {
             Quản lý đề tài và các nhóm sinh viên trực thuộc
           </Typography>
         </Box>
-        {isAdmin && (
+        {canEdit && (
           <Button variant="contained" startIcon={<AddTaskIcon />} onClick={() => handleOpenModal()} sx={{ borderRadius: '50px', px: 4, py: 1.5, fontWeight: 700, boxShadow: '0 8px 16px rgba(26, 35, 126, 0.2)', background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', '&:hover': { transform: 'translateY(-2px)' } }}>
             Tạo Nhóm Đề Tài
           </Button>
@@ -172,7 +189,6 @@ const InternshipAssignmentsManagement = () => {
                 <Box sx={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, borderRadius: '50%', background: 'rgba(26, 35, 126, 0.03)', zIndex: 0 }} />
 
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2, position: 'relative', zIndex: 1 }}>
-                  <Chip label={assignment.phaseName} size="small" sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)', color: "text.secondary", fontWeight: 700, borderRadius: 2 }} />
                   {getStatusChip(assignment.status)}
                 </Stack>
 
@@ -224,7 +240,7 @@ const InternshipAssignmentsManagement = () => {
 
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
                   <Button startIcon={<VisibilityIcon />} variant="text" onClick={() => navigate(`/admin/assignments/${assignment.id}`)} sx={{ fontWeight: 700, borderRadius: 2 }}>Xem chi tiết</Button>
-                  {isAdmin && (
+                  {canEdit && (
                     <IconButton size="small" color="primary" onClick={() => handleOpenModal(assignment)} sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)' }}><EditIcon fontSize="small" /></IconButton>
                   )}
                 </Stack>
@@ -253,6 +269,8 @@ const InternshipAssignmentsManagement = () => {
         formData={formData}
         setFormData={setFormData}
         onSave={handleSave}
+        mentors={mentors}
+        students={students}
       />
     </Box>
   );

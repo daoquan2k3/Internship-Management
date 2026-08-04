@@ -32,7 +32,8 @@ public class CompanyServiceImpl implements ICompanyService {
 
     @Override
     public PageResponseDTO<CompanyResponse> searchCompanies(String search, Pageable pageable) {
-        Page<Company> companyPage = companyRepository.searchCompanies(search, pageable);
+        String safeSearch = (search == null) ? "" : search;
+        Page<Company> companyPage = companyRepository.searchCompanies(safeSearch, pageable);
         List<CompanyResponse> content = companyPage.getContent().stream()
                 .map(CompanyMapper::toDto)
                 .collect(Collectors.toList());

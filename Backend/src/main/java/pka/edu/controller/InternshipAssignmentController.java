@@ -25,7 +25,7 @@ public class InternshipAssignmentController {
     private final InternshipAssignmentService internshipAssignmentService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_COMPANY_REP')")
     public ResponseEntity<ApiResponse<InternshipAssignmentResponse>> createInternshipAssignment(@Valid @RequestBody InternshipAssignmentCreateRequest request) throws ResourceConflictException, ResourceNotFoundException {
         return new ResponseEntity<>(internshipAssignmentService.createInternshipAssignment(request), HttpStatus.CREATED);
     }
@@ -44,7 +44,7 @@ public class InternshipAssignmentController {
     }
 
     @PutMapping("/{assignmentId}/status")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_COMPANY_REP')")
     public ResponseEntity<ApiResponse<InternshipAssignmentResponse>> updateStatusAssignment(@PathVariable Long assignmentId, @Valid @RequestBody InternshipAssignmentUpdateRequest request) throws ResourceNotFoundException, ResourceBadRequestException {
         return new ResponseEntity<>(internshipAssignmentService.updateInternshipAssignment(assignmentId, request), HttpStatus.OK);
     }

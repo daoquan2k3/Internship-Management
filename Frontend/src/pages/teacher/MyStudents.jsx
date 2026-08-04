@@ -8,16 +8,10 @@ const AssignedStudents = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  const [viewMode, setViewMode] = useState('grid');
-  const [page, setPage] = useState(1);
+    const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const handleViewChange = (event, nextView) => {
-    if (nextView !== null) {
-      setViewMode(nextView);
-    }
-  };
-
+  
   const handlePageChange = (event, value) => {
     setPage(value);
   };

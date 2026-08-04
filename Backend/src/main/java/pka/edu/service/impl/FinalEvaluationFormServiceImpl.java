@@ -276,7 +276,7 @@ public class FinalEvaluationFormServiceImpl implements IFinalEvaluationFormServi
                         : String.valueOf(form.getStudentId() != null ? form.getStudentId() : "SV");
                 if (form.getScannedFormUrl() != null && !form.getScannedFormUrl().isEmpty()) {
                     try {
-                        byte[] fileBytes = restTemplate.getForObject(form.getScannedFormUrl(), byte[].class);
+                        byte[] fileBytes = restTemplate.getForObject(java.net.URI.create(form.getScannedFormUrl().replace(" ", "%20")), byte[].class);
                         if (fileBytes != null) {
                             String ext = "";
                             if (form.getScannedFormUrl().contains(".")) {
@@ -299,7 +299,7 @@ public class FinalEvaluationFormServiceImpl implements IFinalEvaluationFormServi
                 }
                 if (form.getSummaryReportUrl() != null && !form.getSummaryReportUrl().isEmpty()) {
                     try {
-                        byte[] fileBytes = restTemplate.getForObject(form.getSummaryReportUrl(), byte[].class);
+                        byte[] fileBytes = restTemplate.getForObject(java.net.URI.create(form.getSummaryReportUrl().replace(" ", "%20")), byte[].class);
                         if (fileBytes != null) {
                             String ext = "";
                             if (form.getSummaryReportUrl().contains(".")) {

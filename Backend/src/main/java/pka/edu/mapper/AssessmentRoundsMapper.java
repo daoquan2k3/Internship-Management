@@ -4,8 +4,6 @@ import pka.edu.dto.request.AssessmentRoundCreateRequest;
 import pka.edu.dto.request.AssessmentRoundUpdateRequest;
 import pka.edu.dto.response.AssessmentRoundsResponse;
 import pka.edu.entity.AssessmentRound;
-import pka.edu.entity.InternshipPhase;
-
 import pka.edu.exception.ResourceBadRequestException;
 import pka.edu.exception.ResourceConflictException;
 import pka.edu.exception.ResourceNotFoundException;
@@ -22,17 +20,14 @@ public class AssessmentRoundsMapper {
                 .roundName(assessmentRounds.getRoundName())
                 .startDate(assessmentRounds.getStartDate())
                 .endDate(assessmentRounds.getEndDate())
-                .phaseName(assessmentRounds.getPhase().getPhaseName())
                 .description(assessmentRounds.getDescription())
 
                 .isDeleted(assessmentRounds.isDeleted())
-                .phaseId(assessmentRounds.getPhase().getPhaseId())
                 .build();
     }
 
-    public static AssessmentRound toEntity(AssessmentRoundCreateRequest request, InternshipPhase phase, pka.edu.entity.UniversityClass universityClass) {
+    public static AssessmentRound toEntity(AssessmentRoundCreateRequest request, pka.edu.entity.UniversityClass universityClass) {
         return AssessmentRound.builder()
-                .phase(phase)
                 .universityClass(universityClass)
                 .roundName(request.getRoundName())
                 .startDate(request.getStartDate())

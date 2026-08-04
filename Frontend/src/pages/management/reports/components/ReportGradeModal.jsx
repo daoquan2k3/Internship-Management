@@ -21,7 +21,7 @@ const ReportGradeModal = ({
   gradeData,
   setGradeData,
   submittingGrade,
-  onSubmitGrade
+  onSubmit
 }) => {
   return (
     <Dialog
@@ -87,7 +87,7 @@ const ReportGradeModal = ({
           Hủy Bỏ
         </Button>
         <Button
-          onClick={onSubmitGrade}
+          onClick={onSubmit}
           variant="contained"
           disabled={submittingGrade}
           startIcon={submittingGrade ? <CircularProgress size={20} color="inherit" /> : <StarIcon />}

@@ -17,8 +17,6 @@ public class InternshipAssignmentCreateRequest {
     private String assignmentTitle;
 
     private String assignmentDescription;
-    @NotNull(message = "Phase ID is required.")
-    private Long phaseId;
 
     @NotNull(message = "Student ID is required.")
     private List<Long> studentIds;

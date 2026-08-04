@@ -13,7 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class DashboardStatsResponse {
     private long totalUsers;
-    private long activePhases;
     private long totalAssignments;
     private long totalReports;
     private long websiteVisits;

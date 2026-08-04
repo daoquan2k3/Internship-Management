@@ -40,14 +40,29 @@ public class MentorServiceImpl implements IMentorService {
         User user = currentUserUtil.getCurrentUser();
 
         Page<Mentor> mentorPage;
+        Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "mentor");
         if (user.getRole() == Role.ROLE_ADMIN) {
-            Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "mentor");
             mentorPage = mentorRepository.findAllByMentorWithSearch(search, pageable);
             return PaginationUtil.toPageResponseDTO(mentorPage, MentorMapper::toDto);
         } else if (user.getRole() == Role.ROLE_STUDENT) {
-            Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "mentor");
             mentorPage = mentorRepository.findMentorsAssignedToStudentWithSearch(user.getUserId(), search, pageable);
             return PaginationUtil.toPageResponseDTO(mentorPage, MentorMapper::toPublicDto);
+        } else if (user.getRole() == Role.ROLE_COMPANY_REP || user.getRole() == Role.ROLE_COMPANY_MENTOR) {
+            User dbUser = UserRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(user.getUserId())
+                    .orElseThrow(() -> new ResourceForbiddenException("User not found"));
+            if (dbUser.getCompany() == null) {
+                throw new ResourceForbiddenException("User must belong to a company");
+            }
+            mentorPage = mentorRepository.findAllByCompanyIdWithSearch(dbUser.getCompany().getCompanyId(), search, pageable);
+            return PaginationUtil.toPageResponseDTO(mentorPage, MentorMapper::toDto);
+        } else if (user.getRole() == Role.ROLE_UNIVERSITY_REP || user.getRole() == Role.ROLE_TEACHER) {
+            User dbUser = UserRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(user.getUserId())
+                    .orElseThrow(() -> new ResourceForbiddenException("User not found"));
+            if (dbUser.getUniversity() == null) {
+                throw new ResourceForbiddenException("User must belong to a university");
+            }
+            mentorPage = mentorRepository.findAllByUniversityIdWithSearch(dbUser.getUniversity().getUniversityId(), search, pageable);
+            return PaginationUtil.toPageResponseDTO(mentorPage, MentorMapper::toDto);
         } else {
             throw new ResourceForbiddenException("User role not supported for this operation");
         }

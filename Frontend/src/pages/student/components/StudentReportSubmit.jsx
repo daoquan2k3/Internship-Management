@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, Stack, CircularProgress, Alert } from "@mui/material";
 import { reportApi, assessmentRoundsApi } from "../../../api/resourceApi";
 import { toast } from "react-toastify";
@@ -11,13 +11,13 @@ const StudentReportSubmit = ({ classId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       // Load both rounds and reports in parallel
       const [roundsRes, reportsRes] = await Promise.all([
-        classId ? assessmentRoundsApi.getAllRounds("", "", classId, 0, 100) : Promise.resolve({ content: [] }),
+        classId ? assessmentRoundsApi.getAllRounds("", classId, 0, 100) : Promise.resolve({ content: [] }),
         reportApi.getMyReports()
       ]);
 
@@ -29,11 +29,11 @@ const StudentReportSubmit = ({ classId }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+    }, [classId]);
 
   useEffect(() => {
     loadData();
-  }, [classId]);
+  }, [classId, loadData]);
 
   const handleDownload = async (report) => {
     const fileUrl = report.fileUrl;

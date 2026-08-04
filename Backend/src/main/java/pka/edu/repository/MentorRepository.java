@@ -24,6 +24,22 @@ public interface MentorRepository extends JpaRepository<Mentor, Long> {
            "cast(m.mentorId as string) like concat('%', :search, '%'))")
     Page<Mentor> findAllByMentorWithSearch(@org.springframework.data.repository.query.Param("search") String search, Pageable pageable);
 
+    @Query("select m from Mentor m left join m.user u where u.isDeleted = false and u.isActive = true and u.company.companyId = :companyId " +
+           "and (:search is null or :search = '' or " +
+           "lower(u.fullName) like lower(concat('%', :search, '%')) or " +
+           "lower(u.email) like lower(concat('%', :search, '%')) or " +
+           "lower(m.department) like lower(concat('%', :search, '%')) or " +
+           "cast(m.mentorId as string) like concat('%', :search, '%'))")
+    Page<Mentor> findAllByCompanyIdWithSearch(@org.springframework.data.repository.query.Param("companyId") Long companyId, @org.springframework.data.repository.query.Param("search") String search, Pageable pageable);
+
+    @Query("select m from Mentor m left join m.user u where u.isDeleted = false and u.isActive = true and u.university.universityId = :universityId " +
+           "and (:search is null or :search = '' or " +
+           "lower(u.fullName) like lower(concat('%', :search, '%')) or " +
+           "lower(u.email) like lower(concat('%', :search, '%')) or " +
+           "lower(m.department) like lower(concat('%', :search, '%')) or " +
+           "cast(m.mentorId as string) like concat('%', :search, '%'))")
+    Page<Mentor> findAllByUniversityIdWithSearch(@org.springframework.data.repository.query.Param("universityId") Long universityId, @org.springframework.data.repository.query.Param("search") String search, Pageable pageable);
+
     @Query("select distinct m from Mentor m where m.user.isDeleted = false and m.user.isActive = true and " +
            "(m.user.role = pka.edu.util.enums.Role.ROLE_TEACHER or m.user.role = pka.edu.util.enums.Role.ROLE_COMPANY_MENTOR) and " +
            "(m in (select ia.mentor from InternshipAssignment ia join ia.students s where s.studentId = :studentId) " +

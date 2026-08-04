@@ -32,7 +32,7 @@ const AssignmentDetail = () => {
   const [rounds, setRounds] = useState([]);
   const [criteria, setCriteria] = useState([]);
   const { user } = useContext(AuthContext);
-  const isRoleNotAllowed = (role) => ["ROLE_STUDENT", "ROLE_ADMIN"].includes(role);
+  const isRoleNotAllowed = (role) => ["ROLE_STUDENT", "ROLE_ADMIN", "ROLE_COMPANY_REP", "COMPANY_REP"].includes(role);
 
   const [grades, setGrades] = useState({});
 
@@ -62,18 +62,16 @@ const AssignmentDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    if (detail?.phaseId) {
-      const fetchRounds = async () => {
-        try {
-          const res = await assessmentRoundsApi.getAllRounds("", detail.phaseId);
-          setRounds(res?.content || res?.data || []);
-        } catch (err) {
-          console.error("Lỗi load rounds:", err);
-        }
-      };
-      fetchRounds();
-    }
-  }, [detail?.phaseId]);
+    const fetchRounds = async () => {
+      try {
+        const res = await assessmentRoundsApi.getAllRounds("", "", 0, 100);
+        setRounds(res?.content || res?.data || []);
+      } catch (err) {
+        console.error("Lỗi load rounds:", err);
+      }
+    };
+    fetchRounds();
+  }, []);
 
   useEffect(() => {
     if (selectedRoundId && selectedCriterionId) {

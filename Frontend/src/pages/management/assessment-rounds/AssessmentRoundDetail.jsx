@@ -153,16 +153,13 @@ const AssessmentRoundDetail = () => {
                                         <SchoolIcon sx={{ fontSize: 28 }} />
                                     </Box>
                                     <Box>
-                                        <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700, textTransform: "uppercase" }}>Chương trình đào tạo</Typography>
-                                        <Typography variant="h6" sx={{ fontWeight: 800, color: "text.primary" }}>Giai đoạn thực tập</Typography>
+                                        <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700, textTransform: "uppercase" }}>Mô tả</Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: 800, color: "text.primary" }}>Chi tiết vòng đánh giá</Typography>
                                     </Box>
                                 </Stack>
                                 <Divider sx={{ mb: 2, borderStyle: "dashed" }} />
-                                <Typography variant="body1" sx={{ fontWeight: 700, color: "#4c1d95", mb: 0.5 }}>
-                                    {round?.phaseName || "Giai đoạn chung"}
-                                </Typography>
-                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                    Mã giai đoạn (Phase ID): #{round?.phaseId || "N/A"}
+                                <Typography variant="body1" sx={{ fontWeight: 600, color: "#4c1d95", mb: 0.5 }}>
+                                    {round?.description || "Không có mô tả"}
                                 </Typography>
                             </Paper>
                         </motion.div>

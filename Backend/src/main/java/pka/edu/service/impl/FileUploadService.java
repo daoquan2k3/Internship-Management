@@ -15,7 +15,10 @@ public class FileUploadService {
 
     private final Cloudinary cloudinary;
 
-    public String uploadFile(MultipartFile file) throws IOException {
+    public String uploadFile(MultipartFile file) throws IOException, pka.edu.exception.ResourceBadRequestException {
+        if (file.isEmpty()) {
+            throw new pka.edu.exception.ResourceBadRequestException("File tải lên không được để trống", null);
+        }
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                 ObjectUtils.asMap(
                         "resource_type", "image",
@@ -30,6 +33,9 @@ public class FileUploadService {
     }
 
     public String uploadDocument(MultipartFile file) throws IOException, pka.edu.exception.ResourceBadRequestException {
+        if (file.isEmpty()) {
+            throw new pka.edu.exception.ResourceBadRequestException("File tải lên không được để trống", null);
+        }
         String contentType = file.getContentType();
         if (contentType == null || !(contentType.equals("application/pdf") ||
                 contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
@@ -58,6 +64,9 @@ public class FileUploadService {
     }
 
     public String uploadGeneralFile(MultipartFile file, String folderName) throws IOException, pka.edu.exception.ResourceBadRequestException {
+        if (file.isEmpty()) {
+            throw new pka.edu.exception.ResourceBadRequestException("File tải lên không được để trống", null);
+        }
         String contentType = file.getContentType();
         if (contentType == null || !(contentType.equals("application/pdf") ||
                 contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||

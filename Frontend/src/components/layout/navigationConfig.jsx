@@ -4,7 +4,6 @@ import {
   Dashboard as DashboardIcon,
   Person as PersonIcon,
   Group as GroupIcon,
-  UploadFile as UploadFileIcon,
   AssignmentTurnedIn as AssignmentTurnedInIcon,
   Business as BusinessIcon,
 } from "@mui/icons-material";
@@ -98,6 +97,7 @@ export const allMenuItems = [
     children: [
       { label: "Sinh viên & Đơn vào", path: "/company-rep/applications" },
       { label: "Người hướng dẫn nội bộ", path: "/management/users" },
+      { label: "Nhóm Phân công", path: "/management/assignments" },
     ],
   },
 

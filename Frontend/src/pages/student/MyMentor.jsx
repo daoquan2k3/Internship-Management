@@ -8,7 +8,6 @@ import Avatar from "@mui/material/Avatar";
 import Stack from "@mui/material/Stack";
 import BusinessIcon from "@mui/icons-material/Business";
 import BadgeIcon from "@mui/icons-material/Badge";
-import SchoolIcon from "@mui/icons-material/School";
 import Chip from "@mui/material/Chip";
 
 const getInitials = (name) => {
@@ -180,9 +179,9 @@ const AssignedMentor = () => {
           </Typography>
           <Grid container spacing={4}>
             <Grid item xs={12} sm={6} lg={4}>
-              <ExternalMentorCard 
-                name={user.student.externalMentorName} 
-                phone={user.student.externalMentorPhone} 
+              <ExternalMentorCard
+                name={user.student.externalMentorName}
+                phone={user.student.externalMentorPhone}
               />
             </Grid>
           </Grid>

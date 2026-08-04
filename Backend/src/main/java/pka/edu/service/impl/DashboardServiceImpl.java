@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 public class DashboardServiceImpl implements IDashboardService {
 
         private final UserRepository userRepository;
-        private final InternshipPhaseRepository phaseRepository;
         private final InternshipAssignmentRepository assignmentRepository;
         private final ReportRepository reportRepository;
         private final SiteTrafficRepository siteTrafficRepository;
@@ -39,7 +38,6 @@ public class DashboardServiceImpl implements IDashboardService {
         @Override
         public DashboardStatsResponse getDashboardStats() {
                 long totalUsers = userRepository.count();
-                long activePhases = phaseRepository.count();
                 long totalAssignments = assignmentRepository.count();
                 long totalReports = reportRepository.count();
 
@@ -61,7 +59,6 @@ public class DashboardServiceImpl implements IDashboardService {
 
                 return DashboardStatsResponse.builder()
                                 .totalUsers(totalUsers)
-                                .activePhases(activePhases)
                                 .totalAssignments(totalAssignments)
                                 .totalReports(totalReports)
                                 .websiteVisits(totalVisits)

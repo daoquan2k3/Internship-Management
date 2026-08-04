@@ -19,8 +19,6 @@ public class InternshipAssignmentResponse {
     private Long mentorId;
     private String mentorName;
     private String mentorAvatarUrl;
-    private Long phaseId;
-    private String phaseName;
 
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate dueDate;

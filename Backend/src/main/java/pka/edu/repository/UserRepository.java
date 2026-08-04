@@ -78,7 +78,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         "AND (:role IS NULL OR u.role = :role) " +
         "AND (:uniId IS NULL OR uni.universityId = :uniId) " +
         "AND (:compId IS NULL OR comp.companyId = :compId OR (u.role = 'ROLE_STUDENT' AND EXISTS (SELECT 1 FROM InternshipPlacement ip WHERE ip.company.companyId = :compId AND ip.student = u.student))) " +
-        "AND (:search IS NULL OR :search = '' OR " +
+        "AND (" +
         "LOWER(uni.universityName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
         "LOWER(comp.companyName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
         "LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
@@ -91,7 +91,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
            "AND u.role IN :roles " +
            "AND (:uniId IS NULL OR uni.universityId = :uniId) " +
            "AND (:compId IS NULL OR comp.companyId = :compId) " +
-           "AND (:search IS NULL OR :search = '' OR " +
+           "AND (" +
            "LOWER(uni.universityName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(comp.companyName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

@@ -5,7 +5,6 @@ import { dashboardApi, mentorApi } from "../../api/resourceApi";
 import StatCard from "../../components/StatCard";
 
 // Icons
-import SchoolIcon from "@mui/icons-material/School";
 import ClassIcon from "@mui/icons-material/Class";
 import GroupsIcon from "@mui/icons-material/Groups";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";

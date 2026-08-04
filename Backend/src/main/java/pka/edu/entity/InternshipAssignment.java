@@ -38,9 +38,7 @@ public class InternshipAssignment {
     @JoinColumn(name = "mentor_id")
     private Mentor mentor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "phase_id")
-    private InternshipPhase phase;
+
 
     private LocalDate assignedDate;
 

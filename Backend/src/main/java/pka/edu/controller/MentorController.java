@@ -26,7 +26,7 @@ public class MentorController {
     private final IMentorService mentorService;
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_STUDENT')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_STUDENT', 'ROLE_COMPANY_REP', 'ROLE_UNIVERSITY_REP', 'ROLE_TEACHER')")
     public ResponseEntity<PageResponseDTO<Object>> getAllMentors(@RequestParam(required = false) String search, @ModelAttribute PageRequestDTO pageRequestDTO) throws ResourceForbiddenException, ResourceNotFoundException {
         return new ResponseEntity<>(mentorService.getAllMentor(pageRequestDTO, search), HttpStatus.OK);
     }

@@ -32,10 +32,9 @@ public class AssessmentRoundsController {
 
     @GetMapping
     public ResponseEntity<PageResponseDTO<AssessmentRoundsResponse>> getAllAssessmentRound(@RequestParam(required = false) String search,
-                                                                                           @RequestParam(required = false) Long phaseId,
                                                                                            @RequestParam(required = false) Long classId,
                                                                                            @ModelAttribute PageRequestDTO request){
-        return new ResponseEntity<>(assessmentRoundsService.getAllAssessmentRound(search, phaseId, classId, request), HttpStatus.OK);
+        return new ResponseEntity<>(assessmentRoundsService.getAllAssessmentRound(search, classId, request), HttpStatus.OK);
     }
 
     @GetMapping("/{roundId}")

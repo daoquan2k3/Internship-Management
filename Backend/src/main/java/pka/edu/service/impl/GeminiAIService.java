@@ -40,7 +40,7 @@ public class GeminiAIService {
         log.info("Bắt đầu tải file báo cáo từ: {}", imageUrl);
         ResponseEntity<byte[]> fileEntity;
         try {
-            fileEntity = restTemplate.getForEntity(imageUrl, byte[].class);
+            fileEntity = restTemplate.getForEntity(java.net.URI.create(imageUrl.replace(" ", "%20")), byte[].class);
         } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized e) {
             throw new Exception("Lỗi bảo mật từ Cloudinary (401 Unauthorized). File báo cáo này đã bị chặn quyền truy cập do thiết lập bảo mật. Vui lòng XÓA file báo cáo cũ và UPLOAD lại file mới để sử dụng tính năng AI.");
         } catch (Exception e) {

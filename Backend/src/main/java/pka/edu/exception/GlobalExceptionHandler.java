@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleResourceBadRequestException(ResourceBadRequestException ex) {
         ApiResponse<Object> response = ApiResponse.builder()
                 .success(false)
-                .message("BAD_REQUEST")
+                .message(ex.getMessage() != null ? ex.getMessage() : "BAD_REQUEST")
                 .data(null)
                 .error(ex.getErrors())
                 .timestamp(LocalDateTime.now())

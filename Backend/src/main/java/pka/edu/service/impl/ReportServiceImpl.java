@@ -254,7 +254,7 @@ public class ReportServiceImpl implements IReportService {
         try (ZipOutputStream zos = new ZipOutputStream(baos)) {
             for (ReportResponse report : reports) {
                 try {
-                    byte[] fileBytes = restTemplate.getForObject(report.getFileUrl(), byte[].class);
+                    byte[] fileBytes = restTemplate.getForObject(java.net.URI.create(report.getFileUrl().replace(" ", "%20")), byte[].class);
 
                     if (fileBytes != null) {
                         String entryName = report.getStudentCode() + "_" + report.getReportId() + "_"

@@ -58,4 +58,14 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
            "lower(s.studentCode) like lower(concat('%', :search, '%')) or " +
            "cast(s.studentId as string) like concat('%', :search, '%'))")
     Page<Student> findStudentsByCompanyIdOrTaxCodeWithSearch(@Param("companyId") Long companyId, @Param("companyCode") String companyCode, @Param("search") String search, Pageable pageable);
+
+    @Query("select distinct s from Student s left join s.user u " +
+           "where (exists (select 1 from InternshipPlacement ip where ip.mentor.mentorId = :mentorId and ip.student = s) " +
+           "or exists (select 1 from InternshipAssignment ia join ia.students ast where ia.mentor.mentorId = :mentorId and ast = s)) " +
+           "and (:search is null or :search = '' or " +
+           "lower(u.fullName) like lower(concat('%', :search, '%')) or " +
+           "lower(u.email) like lower(concat('%', :search, '%')) or " +
+           "lower(s.studentCode) like lower(concat('%', :search, '%')) or " +
+           "cast(s.studentId as string) like concat('%', :search, '%'))")
+    Page<Student> findStudentsByMentorPlacementWithSearch(@Param("mentorId") Long mentorId, @Param("search") String search, Pageable pageable);
 }

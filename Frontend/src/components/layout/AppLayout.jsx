@@ -76,7 +76,6 @@ export const AppLayout = ({ children }) => {
     });
 
     if (hasChanges) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedItems(newExpandedItems);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

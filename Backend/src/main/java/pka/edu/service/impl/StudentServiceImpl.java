@@ -81,8 +81,13 @@ public class StudentServiceImpl implements IStudentService {
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "student");
             studentPage = studentRepository.findAllStudentsWithSearch(search, pageable);
         } else if (currentUser.getRole() == Role.ROLE_MENTOR || currentUser.getRole() == Role.ROLE_COMPANY_MENTOR) {
+            User dbUser = UserRepository.findByUserIdAndIsDeletedFalseAndIsActiveTrue(currentUser.getUserId())
+                    .orElseThrow(() -> new ResourceForbiddenException("User not found"));
+            if (dbUser.getMentor() == null) {
+                throw new ResourceForbiddenException("Mentor profile not found");
+            }
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "student");
-            studentPage = internshipAssignmentRepository.findStudentsByMentorIdWithSearch(currentUser.getUserId(), search, pageable);
+            studentPage = studentRepository.findStudentsByMentorPlacementWithSearch(dbUser.getMentor().getMentorId(), search, pageable);
         } else if (currentUser.getRole() == Role.ROLE_TEACHER) {
             Pageable pageable = PaginationUtil.createPageRequest(pageRequestDTO, "student");
             studentPage = studentRepository.findStudentsByTeacherIdWithSearch(currentUser.getUserId(), search, pageable);

@@ -7,8 +7,7 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
-  Divider,
-} from "@mui/material";
+  } from "@mui/material";
 import {
   Menu as MenuIcon,
   Close as CloseIcon,

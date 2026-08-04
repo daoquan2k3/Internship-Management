@@ -21,9 +21,6 @@ public class AssessmentRound {
     @Column(name = "round_id")
     private Long roundId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "phase_id")
-    private InternshipPhase phase;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id")

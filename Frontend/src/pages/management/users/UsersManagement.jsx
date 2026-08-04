@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../../context/AuthContext";
 import { userApi } from "../../../api/resourceApi";
 import { universityApi } from "../../../api/universityApi";
+import companyApi from "../../../api/companyApi";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -76,6 +77,7 @@ const UsersManagement = () => {
   const [search, setSearch] = useState("");
   const { user: currentUser } = useContext(AuthContext);
   const [universities, setUniversities] = useState([]);
+  const [companies, setCompanies] = useState([]);
 
   const [openModal, setOpenModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -108,6 +110,9 @@ const UsersManagement = () => {
         
         const uniRes = await universityApi.getAllUniversities(1, 100);
         if (isMounted) setUniversities(uniRes?.content || []);
+        
+        const compRes = await companyApi.getAllCompanies({ page: 0, size: 100 });
+        if (isMounted) setCompanies(compRes?.content || []);
       } catch (err) {
         console.error("Error fetching users:", err);
       }
@@ -284,6 +289,7 @@ const UsersManagement = () => {
         setFormData={setFormData}
         currentUserRole={currentUser?.role}
         universities={universities}
+        companies={companies}
       />
 
       <ConfirmDeleteModal

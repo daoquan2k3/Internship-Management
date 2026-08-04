@@ -18,8 +18,6 @@ import java.util.List;
 @ValidDateRange(startDateField = "startDate", endDateField = "endDate")
 public class AssessmentRoundCreateRequest {
 
-    @NotNull(message = "Phase ID is required.")
-    private Long phaseId;
 
     private Long classId;
 

@@ -38,7 +38,7 @@ const StudentWorkflow = () => {
       const allApps = appRes?.content || [];
       const latestApp = allApps[0] || null;
       setApplication(latestApp);
-      
+
       const activeCount = allApps.filter(app => app.status === 'PENDING' || app.status === 'APPROVED').length;
       setActiveAppCount(activeCount);
 

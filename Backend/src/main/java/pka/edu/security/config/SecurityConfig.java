@@ -47,7 +47,7 @@ public class SecurityConfig {
             "/api/v1/users/**",
             "/api/v1/students/**",
             "/api/v1/mentors/**",
-            "/api/v1/internship-phases/**",
+
             "/api/v1/evaluation-criterias/**",
             "/api/v1/assessment-rounds/**",
             "/api/v1/round-criterias/**",

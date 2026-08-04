@@ -63,9 +63,7 @@ public class AssessmentResultServiceImpl implements IAssessmentResultService {
             throw new ResourceForbiddenException("You do not have permission to create assessment results for this assignment");
         }
 
-        if (!assignment.getPhase().getPhaseId().equals(round.getPhase().getPhaseId())) {
-            errorList.put("roundId", "Round does not belong to the assignment's phase");
-        }
+
 
         if (assessmentResultRepository.existsByAssignment_AssignmentIdAndRound_RoundId(assignment.getAssignmentId(), round.getRoundId())) {
             ValidationErrorUtil.addError(errorList, "roundId", "This assignment has already been evaluated for this round");

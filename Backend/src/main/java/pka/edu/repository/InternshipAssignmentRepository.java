@@ -15,11 +15,7 @@ import java.util.Optional;
 @Repository
 public interface InternshipAssignmentRepository extends JpaRepository<InternshipAssignment, Long> {
 
-    // Dùng JOIN để quét qua danh sách sinh viên của Assignment
-    @Query("select case when count(ia) > 0 then true else false end from InternshipAssignment ia " +
-            "join ia.students s " +
-            "where s.studentId = :studentId and ia.phase.phaseId = :phaseId")
-    boolean existsByStudentIdAndPhaseId(@Param("studentId") Long studentId, @Param("phaseId") Long phaseId);
+
 
     @Query("select case when count(ia) > 0 then true else false end from InternshipAssignment ia " +
             "where ia.mentor.mentorId = :mentorId and ia.assignmentId = :assignmentId")
@@ -31,7 +27,6 @@ public interface InternshipAssignmentRepository extends JpaRepository<Internship
             "where ia.mentor.mentorId = :mentorId and ( " +
             ":search is null or :search = '' or " +
             "lower(cast(ia.status as string )) like lower(concat('%', :search, '%')) or " +
-            "lower(ia.phase.phaseName) like lower(concat('%', :search, '%')) or " +
             "lower(ia.assignmentTitle) like lower(concat('%', :search, '%')) or " +
             "lower(ia.mentor.user.fullName) like lower(concat('%', :search, '%')) or " +
             "lower(s.user.fullName) like lower(concat('%', :search, '%')))")
@@ -43,7 +38,6 @@ public interface InternshipAssignmentRepository extends JpaRepository<Internship
             "where st.studentId = :studentId and ( " +
             ":search is null or :search = '' or " +
             "lower(cast(ia.status as string )) like lower(concat('%', :search, '%')) or " +
-            "lower(ia.phase.phaseName) like lower(concat('%', :search, '%')) or " +
             "lower(ia.assignmentTitle) like lower(concat('%', :search, '%')) or " +
             "lower(ia.mentor.user.fullName) like lower(concat('%', :search, '%')) or " +
             "lower(s.user.fullName) like lower(concat('%', :search, '%')))")
@@ -54,13 +48,24 @@ public interface InternshipAssignmentRepository extends JpaRepository<Internship
             "where " +
             ":search is null or :search = '' or " +
             "lower(cast(ia.status as string )) like lower(concat('%', :search, '%')) or " +
-            "lower(ia.phase.phaseName) like lower(concat('%', :search, '%')) or " +
             "lower(ia.assignmentTitle) like lower(concat('%', :search, '%')) or " +
             "lower(ia.mentor.user.fullName) like lower(concat('%', :search, '%')) or " +
             "lower(s.user.fullName) like lower(concat('%', :search, '%'))")
     Page<InternshipAssignment> findAllByKeyword(@Param("search") String search, Pageable pageable);
 
+    @Query("select distinct ia from InternshipAssignment ia " +
+            "left join ia.students s " +
+            "where ia.mentor.user.company.companyId = :companyId and ( " +
+            ":search is null or :search = '' or " +
+            "lower(cast(ia.status as string )) like lower(concat('%', :search, '%')) or " +
+            "lower(ia.assignmentTitle) like lower(concat('%', :search, '%')) or " +
+            "lower(ia.mentor.user.fullName) like lower(concat('%', :search, '%')) or " +
+            "lower(s.user.fullName) like lower(concat('%', :search, '%')))")
+    Page<InternshipAssignment> findByCompanyIdAndKeyword(@Param("search") String search, @Param("companyId") Long companyId, Pageable pageable);
+
     Optional<InternshipAssignment> findByAssignmentIdAndMentor_MentorId(Long assignmentId, Long mentorId);
+
+    Optional<InternshipAssignment> findByAssignmentIdAndMentor_User_Company_CompanyId(Long assignmentId, Long companyId);
 
     @Query("select ia from InternshipAssignment ia join ia.students s where ia.assignmentId = :assignmentId and s.studentId = :studentId")
     Optional<InternshipAssignment> findByAssignmentIdAndStudentId(@Param("assignmentId") Long assignmentId, @Param("studentId") Long studentId);
@@ -71,7 +76,6 @@ public interface InternshipAssignmentRepository extends JpaRepository<Internship
             "where st.studentId = :studentId and ( " +
             ":search is null or :search = '' or " +
             "lower(cast(ia.status as string )) like lower(concat('%', :search, '%')) or " +
-            "lower(ia.phase.phaseName) like lower(concat('%', :search, '%')) or " +
             "lower(ia.assignmentTitle) like lower(concat('%', :search, '%')) or " +
             "lower(ia.mentor.user.fullName) like lower(concat('%', :search, '%')) or " +
             "lower(s.user.fullName) like lower(concat('%', :search, '%')))")

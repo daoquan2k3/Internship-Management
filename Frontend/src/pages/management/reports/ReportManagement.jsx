@@ -7,7 +7,6 @@ import {
   CircularProgress,
   Button,
   Chip,
-  Divider,
   TextField,
   Tabs,
   Tab,
@@ -25,21 +24,15 @@ import {
   DialogActions,
   InputAdornment,
 } from "@mui/material";
-import DownloadIcon from "@mui/icons-material/Download";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import PersonIcon from "@mui/icons-material/Person";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import BadgeIcon from "@mui/icons-material/Badge";
 import SearchIcon from "@mui/icons-material/Search";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import File from "@mui/icons-material/FileDownload";
 import FolderZipIcon from "@mui/icons-material/FolderZip";
-import EditNoteIcon from "@mui/icons-material/EditNote";
 import StarIcon from "@mui/icons-material/Star";
 import EditIcon from "@mui/icons-material/Edit";
 import ScoreIcon from "@mui/icons-material/Score";
 import CloseIcon from "@mui/icons-material/Close";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
 import { reportApi, assessmentRoundsApi } from "../../../api/resourceApi";
 import { universityClassApi, finalEvaluationFormApi, internshipPlacementApi } from "../../../api/universityApi";
 import { AuthContext } from "../../../context/AuthContext";
@@ -147,7 +140,7 @@ const ReportManagement = () => {
       if (currentTab !== 0) return;
       try {
         const classIdParam = selectedClass ? selectedClass.classId : "";
-        const res = await assessmentRoundsApi.getAllRounds("", "", classIdParam, 0, 100);
+        const res = await assessmentRoundsApi.getAllRounds("", classIdParam, 0, 100);
         setRounds(res?.content || []);
       } catch (error) {
         console.error("Lỗi khi tải danh sách tuần/vòng đánh giá:", error);
@@ -669,7 +662,7 @@ const ReportManagement = () => {
                 variant="outlined"
                 disabled={exporting}
                 onClick={handleExportExcel}
-                startIcon={exporting ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+                startIcon={exporting ? <CircularProgress size={20} /> : <File />}
                 sx={{ borderRadius: "12px", px: 3, py: 1.2, fontWeight: 700 }}
               >
                 Xuất Data (Excel)
@@ -734,7 +727,7 @@ const ReportManagement = () => {
                 variant="outlined"
                 disabled={exporting}
                 onClick={handleExportFinalExcel}
-                startIcon={exporting ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+                startIcon={exporting ? <CircularProgress size={20} /> : <File />}
                 sx={{ borderRadius: "12px", px: 3, py: 1.2, fontWeight: 700 }}
               >
                 Xuất Data (Excel)
@@ -904,7 +897,7 @@ const ReportManagement = () => {
                 variant="outlined"
                 disabled={exporting}
                 onClick={handleExportPlacements}
-                startIcon={exporting ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+                startIcon={exporting ? <CircularProgress size={20} /> : <File />}
                 sx={{ borderRadius: "12px", px: 3, py: 1.2, fontWeight: 700 }}
               >
                 Xuất Data (Excel)

@@ -20,9 +20,8 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
     boolean existsByCompanyCode(@Param("code") String code);
 
     @Query("SELECT c FROM Company c WHERE c.isDeleted = false AND (" +
-            "(:search IS NULL OR LOWER(c.companyName) LIKE LOWER(CONCAT('%', :search, '%'))) OR " +
-            "(:search IS NULL OR LOWER(c.companyCode) LIKE LOWER(CONCAT('%', :search, '%'))) OR " +
-            "(:search IS NULL OR LOWER(c.email) LIKE LOWER(CONCAT('%', :search, '%')))" +
-            ")")
+            "LOWER(c.companyName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(c.companyCode) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(c.email) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Company> searchCompanies(@Param("search") String search, Pageable pageable);
 }

@@ -21,20 +21,18 @@ public class PaginationUtil {
         List<String> studentAllowedSortFields = List.of("studentId", "studentCode", "major", "classRoom", "dateOfBirth", "address", "createdAt", "updatedAt");
         // Danh sách các trường được phép sort cho Mentor
         List<String> mentorAllowedSortFields = List.of("mentorId", "department", "academicRank", "createdAt", "updatedAt");
-        // Danh sách các trường được phép sort cho InternshipPhase
-        List<String> internshipPhaseAllowedSortFields = List.of("phaseId", "phaseName", "description", "createdAt", "updatedAt");
 
         // Danh sach các trường được phép sort cho EvaluationCriteria
         List<String> evaluationAllowedSortFields = List.of("criterionId", "criterionName", "maxScore", "description", "createdAt", "updatedAt");
 
         // Danh sách các trường được sort cho AssessmentRound
-        List<String> assessmentRoundAllowedSortFields = List.of("roundId", "phase", "roundName", "startDate", "endDate", "description", "createdAt", "updatedAt");
+        List<String> assessmentRoundAllowedSortFields = List.of("roundId", "roundName", "startDate", "endDate", "description", "createdAt", "updatedAt");
 
         // Danh sách các trường được sort cho RoundCriteria
         List<String> roundCriteriaAllowedSortFields = List.of("roundCriteriaId", "round", "criterion", "weight", "createdAt", "updatedAt");
 
         // Danh sách các trường được sort cho InternshipAssignment
-        List<String> internshipAssignmentAllowedSortFields = List.of("assignmentId", "student", "mentor", "phase", "assignedDate",  "status", "createdAt", "updatedAt");
+        List<String> internshipAssignmentAllowedSortFields = List.of("assignmentId", "student", "mentor", "assignedDate", "status", "createdAt", "updatedAt");
 
         // Danh sách các trường được sort cho AssessmentResult
         List<String> assessmentResultAllowedSortFields = List.of("resultId", "assignment", "round", "criterion", "score","comment", "evaluationDate", "evaluationId", "createdAt", "updatedAt");
@@ -50,7 +48,7 @@ public class PaginationUtil {
             case "user" -> userAllowedSortFields;
             case "student" -> studentAllowedSortFields;
             case "mentor" -> mentorAllowedSortFields;
-            case "internshipPhase" -> internshipPhaseAllowedSortFields;
+
             case "evaluationCriteria" -> evaluationAllowedSortFields;
             case "assessmentRound" -> assessmentRoundAllowedSortFields;
             case "roundCriteria" -> roundCriteriaAllowedSortFields;

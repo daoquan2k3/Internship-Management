@@ -53,6 +53,12 @@ axiosClient.interceptors.response.use(
     },
     async (error) => {
         const originalRequest = error.config;
+        
+        // Không intercept 401 nếu đó là API login hoặc refresh token
+        if (originalRequest.url.includes('/api/v1/auth/login') || originalRequest.url.includes('/api/v1/auth/refresh')) {
+            return Promise.reject(error);
+        }
+
         if (error.response?.status === 401 && !originalRequest._retry) {
 
             if (isRefreshing) {

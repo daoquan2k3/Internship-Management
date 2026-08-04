@@ -1,5 +1,5 @@
-import { useState, useEffect, useContext } from "react";
-import { Box, Typography, CircularProgress, Paper, Grid, Stack, Avatar } from "@mui/material";
+import { useState, useContext } from "react";
+import { Box, Typography, CircularProgress, Paper, Stack, Avatar } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import GroupIcon from "@mui/icons-material/Group";
@@ -12,7 +12,7 @@ import { AuthContext } from "../../context/AuthContext";
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   if (loading) {
     return (

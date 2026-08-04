@@ -13,7 +13,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { ExpandLess, ExpandMore, MenuOpen, Menu } from "@mui/icons-material";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { allMenuItems } from "./navigationConfig";
 
 const getRoleColor = (role) => {

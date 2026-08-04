@@ -42,7 +42,6 @@ const AssessmentRoundsManagement = ({ isEmbedded = false }) => {
     description: "",
     startDate: "",
     endDate: "",
-    phaseId: "",
     classId: "",
     isDeleted: false,
     roundCriteria: []
@@ -77,7 +76,7 @@ const AssessmentRoundsManagement = ({ isEmbedded = false }) => {
     const fetchRounds = async () => {
       try {
         setLoading(true);
-        const response = await assessmentRoundsApi.getAllRounds(search, null, null, page, rowsPerPage);
+        const response = await assessmentRoundsApi.getAllRounds(search, null, page, rowsPerPage);
         if (isMounted) {
           setData(response?.content || []);
           setTotalCount(response?.totalElements || 0);
@@ -95,7 +94,7 @@ const AssessmentRoundsManagement = ({ isEmbedded = false }) => {
   const fetchRoundsManual = async () => {
     try {
       setLoading(true);
-      const response = await assessmentRoundsApi.getAllRounds(search, null, null, page, rowsPerPage);
+      const response = await assessmentRoundsApi.getAllRounds(search, null, page, rowsPerPage);
       setData(response?.content || []);
       setTotalCount(response?.totalElements || 0);
     } catch (err) {
@@ -122,7 +121,6 @@ const AssessmentRoundsManagement = ({ isEmbedded = false }) => {
         description: round.description || "",
         startDate: formatToISO(round.startDate) || "",
         endDate: formatToISO(round.endDate) || "",
-        phaseId: round.phaseId || "",
         classId: round.classId || "",
         isDeleted: round.isDeleted || false,
         roundCriteria: round.roundCriteria ? round.roundCriteria.map(rc => ({
@@ -139,7 +137,6 @@ const AssessmentRoundsManagement = ({ isEmbedded = false }) => {
         description: "",
         startDate: "",
         endDate: "",
-        phaseId: "",
         isDeleted: false,
         roundCriteria: []
       });

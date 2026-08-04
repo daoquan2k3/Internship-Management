@@ -36,7 +36,6 @@ const NotificationBell = () => {
       (!user.role.includes("STUDENT") || (user.student?.major && user.student?.classRoom)) &&
       (!user.role.includes("MENTOR") || user.mentor?.department);
     if (isProfileComplete) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchNotifications();
       const interval = setInterval(fetchNotifications, 10000);
       return () => clearInterval(interval);

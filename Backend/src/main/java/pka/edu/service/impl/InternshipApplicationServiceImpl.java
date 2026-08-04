@@ -121,6 +121,21 @@ public class InternshipApplicationServiceImpl implements InternshipApplicationSe
             rabbitTemplate.convertAndSend(exchangeName, routingKey, notification);
         }
 
+        if (company != null) {
+            java.util.List<User> companyReps = userRepository.findByRoleAndCompany_CompanyIdAndIsDeletedFalseAndIsActiveTrue(
+                    Role.ROLE_COMPANY_REP, company.getCompanyId(), org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+            for (User rep : companyReps) {
+                NotificationEventDTO notification = NotificationEventDTO.builder()
+                        .recipientId(rep.getUserId())
+                        .title("🔔 Có đơn ứng tuyển mới từ sinh viên!")
+                        .message("Sinh viên " + student.getUser().getFullName() + " (Mã SV: " + student.getStudentCode()
+                                + ") vừa ứng tuyển vào vị trí " + application.getPosition() + " tại doanh nghiệp của bạn.")
+                        .type("APPLICATION_SUBMITTED")
+                        .build();
+                rabbitTemplate.convertAndSend(exchangeName, routingKey, notification);
+            }
+        }
+
         return InternshipApplicationMapper.toDto(saved);
     }
 

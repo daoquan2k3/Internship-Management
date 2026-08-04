@@ -25,6 +25,7 @@ const UserFormModal = ({
   setFormData,
   currentUserRole,
   universities,
+  companies,
 }) => {
   return (
     <Modal
@@ -187,11 +188,28 @@ const UserFormModal = ({
                         </>
                       )}
                       {["ROLE_COMPANY_MENTOR", "ROLE_COMPANY_REP"].includes(formData.role) && (
-                        <TextField
-                          fullWidth label="Chức vụ"
-                          value={formData.position}
-                          onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                        />
+                        <>
+                          <FormControl fullWidth>
+                            <InputLabel>Doanh nghiệp</InputLabel>
+                            <Select
+                              value={formData.companyId || ""}
+                              label="Doanh nghiệp"
+                              onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
+                            >
+                              <MenuItem value=""><em>Chọn doanh nghiệp</em></MenuItem>
+                              {companies?.map((comp) => (
+                                <MenuItem key={comp.companyId} value={comp.companyId}>
+                                  {comp.companyName}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <TextField
+                            fullWidth label="Chức vụ"
+                            value={formData.position}
+                            onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                          />
+                        </>
                       )}
                     </>
                   )}

@@ -42,6 +42,7 @@ public class InternshipApplicationController {
             @RequestParam(value = "taxCode", required = false) String taxCode,
             @RequestParam(value = "contactPhone", required = false) String contactPhone,
             @RequestParam(value = "position", required = false) String position,
+            @RequestParam(value = "companyId", required = false) Long companyId,
             @AuthenticationPrincipal UserPrincipal userPrincipal)
             throws IOException, ResourceBadRequestException {
 
@@ -57,6 +58,7 @@ public class InternshipApplicationController {
         request.setTaxCode(taxCode);
         request.setContactPhone(contactPhone);
         request.setPosition(position);
+        request.setCompanyId(companyId);
 
         return ResponseEntity.ok(applicationService.submitApplication(request, userPrincipal.getUsers().getUserId()));
     }

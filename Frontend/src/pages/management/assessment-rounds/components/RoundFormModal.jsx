@@ -52,22 +52,19 @@ const RoundFormModal = ({
                     <TextField fullWidth label="Ngày kết thúc" type={formData.endDate ? "date" : "text"} value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} onFocus={(e) => (e.target.type = "date")} onBlur={(e) => { if (!formData.endDate) e.target.type = "text"; }} />
                   </Stack>
 
-                  <Stack direction="row" spacing={2}>
-                    <TextField fullWidth label="Mã giai đoạn (Phase ID)" value={formData.phaseId} onChange={(e) => setFormData({ ...formData, phaseId: e.target.value })} />
-                    {isTeacher && (
-                      <Autocomplete
-                        fullWidth
-                        options={teacherClasses || []}
-                        getOptionLabel={(option) => option.className || `Class ID: ${option.classId}`}
-                        isOptionEqualToValue={(option, value) => option.classId === value?.classId || option.classId === value}
-                        value={(teacherClasses || []).find(c => c.classId === formData.classId) || null}
-                        onChange={(event, newValue) => {
-                          setFormData({ ...formData, classId: newValue ? newValue.classId : "" });
-                        }}
-                        renderInput={(params) => <TextField {...params} label="Lớp học phụ trách" />}
-                      />
-                    )}
-                  </Stack>
+                  {isTeacher && (
+                    <Autocomplete
+                      fullWidth
+                      options={teacherClasses || []}
+                      getOptionLabel={(option) => option.className || `Class ID: ${option.classId}`}
+                      isOptionEqualToValue={(option, value) => option.classId === value?.classId || option.classId === value}
+                      value={(teacherClasses || []).find(c => c.classId === formData.classId) || null}
+                      onChange={(event, newValue) => {
+                        setFormData({ ...formData, classId: newValue ? newValue.classId : "" });
+                      }}
+                      renderInput={(params) => <TextField {...params} label="Lớp học phụ trách" />}
+                    />
+                  )}
 
                   {/* Switch Trạng thái */}
                   <Box sx={{ p: 2, borderRadius: 2, bgcolor: "background.paper", border: "1px solid #e0e0e0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>

@@ -70,7 +70,7 @@ Tài liệu này giải thích công dụng của từng hàm trong các file Se
 - `getAdminDashboard`, `getUniversityRepDashboard`, `getTeacherDashboard`, `getStudentDashboard`: Trả về số liệu tổng quan (số lượng sinh viên, báo cáo, tỷ lệ đạt/trượt...).
 - Frontend sử dụng các hàm này trong các component hiển thị Biểu đồ và Card Thống Kê ở màn hình chính (Ví dụ: `TeacherDashboard.jsx`, `MainDashboard.jsx`).
 
-## 14. InternshipPhaseService.java & InternshipAssignmentService.java
+## 14. InternshipAssignmentService.java
 - (Legacy/Cũ) Các service liên quan đến mô hình phân công, đợt thực tập cũ, một số chức năng đã được tối giản và thay thế bằng `IAssessmentRounds` và `IInternshipPlacement`. Mọi tính năng phân công mới đã tự động gắn vào Application & Placement.
 
 ## 15. ICompanyService.java (Quản lý Công ty)

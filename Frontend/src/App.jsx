@@ -33,7 +33,6 @@ const UniversityClasses = lazy(() => import("./pages/unirep/UniversityClasses"))
 const UniversityJoinRequests = lazy(() => import("./pages/unirep/UniversityJoinRequests"));
 const FinalEvaluationsRep = lazy(() => import("./pages/unirep/FinalEvaluationsRep"));
 const TeacherApplications = lazy(() => import("./pages/teacher/TeacherApplications"));
-const InternshipPhasesManagement = lazy(() => import("./pages/management/phases/InternshipPhasesManagement"));
 const InternshipAssignmentsManagement = lazy(() => import("./pages/management/assignments/InternshipAssignmentsManagement"));
 const AssessmentRoundsManagement = lazy(() => import("./pages/management/assessment-rounds/AssessmentRoundsManagement"));
 const ReportManagement = lazy(() => import("./pages/management/reports/ReportManagement"));
@@ -162,14 +161,7 @@ function App() {
                                     </AppLayout>
                                 }
                             />
-                            <Route
-                                path="/management/phases"
-                                element={
-                                    <AppLayout>
-                                        <InternshipPhasesManagement />
-                                    </AppLayout>
-                                }
-                            />
+
                             <Route
                                 path="/management/assignments"
                                 element={

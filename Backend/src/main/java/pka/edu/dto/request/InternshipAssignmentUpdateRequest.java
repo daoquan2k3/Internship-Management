@@ -17,7 +17,7 @@ public class InternshipAssignmentUpdateRequest {
     private String assignmentTitle;
     private String assignmentDescription;
     private Long mentorId;
-    private Long phaseId;
+
     private List<Long> studentIds;
     private LocalDate dueDate;
 }

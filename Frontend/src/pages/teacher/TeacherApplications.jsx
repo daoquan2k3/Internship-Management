@@ -28,22 +28,22 @@ const TeacherApplications = () => {
 
   useEffect(() => {
     const fetchClasses = async () => {
-        if (!user?.userId) return;
-        try {
-            const res = await universityClassApi.getClassesByTeacher(user.userId, 1, 100);
-            setClasses(res?.content || []);
-            if (res?.content?.length > 0) setSelectedClass(res.content[0]);
-        } catch (error) {
-            console.error(error);
-        }
+      if (!user?.userId) return;
+      try {
+        const res = await universityClassApi.getClassesByTeacher(user.userId, 1, 100);
+        setClasses(res?.content || []);
+        if (res?.content?.length > 0) setSelectedClass(res.content[0]);
+      } catch (error) {
+        console.error(error);
+      }
     };
     fetchClasses();
   }, [user]);
 
   const fetchApplications = useCallback(async () => {
     if (!selectedClass) {
-        setApplications([]);
-        return;
+      setApplications([]);
+      return;
     }
     setLoading(true);
     try {
@@ -61,19 +61,6 @@ const TeacherApplications = () => {
     fetchApplications();
   }, [fetchApplications]);
 
-  const handleUpdateCondition = async (appId, isHardCopySubmitted, isCreditConditionMet) => {
-    setProcessingId(appId);
-    try {
-      await internshipApplicationApi.updateConditions(appId, { isHardCopySubmitted, isCreditConditionMet });
-      toast.success("Cập nhật điều kiện thành công!");
-      fetchApplications();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Lỗi cập nhật.");
-      console.error(error);
-    } finally {
-      setProcessingId(null);
-    }
-  };
 
   const handleApprove = async (appId) => {
     setProcessingId(appId);
@@ -106,7 +93,7 @@ const TeacherApplications = () => {
       toast.error("Vui lòng nhập lý do từ chối");
       return;
     }
-    
+
     setProcessingId(selectedAppForReject);
     try {
       await internshipApplicationApi.rejectApplication(selectedAppForReject, rejectReason);
@@ -206,53 +193,53 @@ const TeacherApplications = () => {
                         <Chip label="Chưa có" size="small" variant="outlined" sx={{ color: "text.secondary", borderColor: "divider" }} />
                       )}
                     </TableCell>
-                  <TableCell>
-                    {a.softCopyUrl ? <a href={a.softCopyUrl} target="_blank" rel="noreferrer">Xem đơn</a> : "Chưa nộp"}
-                  </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={a.status} 
-                      color={a.status === 'APPROVED' ? 'success' : a.status === 'REJECTED' ? 'error' : 'warning'} 
-                      size="small" 
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    {a.status === 'PENDING' ? (
+                    <TableCell>
+                      {a.softCopyUrl ? <a href={a.softCopyUrl} target="_blank" rel="noreferrer">Xem đơn</a> : "Chưa nộp"}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={a.status}
+                        color={a.status === 'APPROVED' ? 'success' : a.status === 'REJECTED' ? 'error' : 'warning'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      {a.status === 'PENDING' ? (
                         <Box display="flex" gap={1} justifyContent="center" flexDirection="column" alignItems="center">
-                            {a.companyId == null ? (
-                              <Button 
-                                  variant="contained" color="primary" size="small"
-                                  sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: 'none', width: '100%' }}
-                                  disabled={processingId === a.applicationId}
-                                  onClick={() => handleApprove(a.applicationId)}
-                              >
-                                  Duyệt vào lớp
-                              </Button>
-                            ) : (
-                              <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic', mb: 0.5 }}>
-                                Đang chờ DN duyệt
-                              </Typography>
-                            )}
-                            <Button 
-                                variant="outlined" color="error" size="small"
-                                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, width: '100%' }}
-                                disabled={processingId === a.applicationId}
-                                onClick={() => handleOpenRejectDialog(a.applicationId)}
+                          {a.companyId == null ? (
+                            <Button
+                              variant="contained" color="primary" size="small"
+                              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: 'none', width: '100%' }}
+                              disabled={processingId === a.applicationId}
+                              onClick={() => handleApprove(a.applicationId)}
                             >
-                                Từ chối
+                              Duyệt vào lớp
                             </Button>
+                          ) : (
+                            <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic', mb: 0.5 }}>
+                              Đang chờ DN duyệt
+                            </Typography>
+                          )}
+                          <Button
+                            variant="outlined" color="error" size="small"
+                            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, width: '100%' }}
+                            disabled={processingId === a.applicationId}
+                            onClick={() => handleOpenRejectDialog(a.applicationId)}
+                          >
+                            Từ chối
+                          </Button>
                         </Box>
-                    ) : (
+                      ) : (
                         <Typography variant="body2" color="text.secondary">—</Typography>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {applications.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} align="center">Không có đơn nào</TableCell>
-                </TableRow>
-              )}
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {applications.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">Không có đơn nào</TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>

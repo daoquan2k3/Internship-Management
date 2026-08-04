@@ -114,7 +114,7 @@ Dưới đây là danh sách các Entity (Bảng dữ liệu) phụ trách cho c
    - **Phụ trách**: Liên kết chính thức giữa Sinh viên, Lớp thực tập, Giảng viên và Cố vấn doanh nghiệp sau khi đơn được duyệt.
    - **Nghiệp vụ**: Cung cấp dữ liệu cho "My Students" (Teacher, Company Mentor) và "My Mentor" (Student).
 
-6. **InternshipPhase.java / AssessmentRound.java**
+6. **AssessmentRound.java**
    - **Phụ trách**: Cấu hình các giai đoạn và vòng đánh giá giữa kỳ.
    - **Nghiệp vụ**: Teacher tạo mới, theo dõi các vòng đánh giá (Assessment Rounds) theo thời gian.
 
