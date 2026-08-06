@@ -50,7 +50,7 @@ const StudentWorkflow = () => {
       // Determine step
       if (!latestJoin || latestJoin.status !== "APPROVED") {
         setActiveStep(0);
-      } else if (!latestApp || latestApp.status !== "APPROVED") {
+      } else if (!latestApp || latestApp.status !== "APPROVED" || !latestApp.companyName) {
         setActiveStep(1);
       } else if (!latestFinal) {
         // Technically they can do progress reports during step 2. 
