@@ -8,6 +8,7 @@ import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { LogoutDialog } from "./LogoutDialog";
 import { allMenuItems } from "./navigationConfig";
+import { Footer } from "./Footer";
 
 const DRAWER_WIDTH = 280;
 const COLLAPSED_WIDTH = 88;
@@ -171,24 +172,28 @@ export const AppLayout = ({ children }) => {
           component="main"
           sx={{
             flexGrow: 1,
-            p: { xs: 2, sm: 4 },
+            display: "flex",
+            flexDirection: "column",
             width: { sm: `calc(100% - ${drawerWidth}px)` },
             backgroundColor: "background.default",
             transition: "width 0.3s ease",
           }}
         >
           <Toolbar />
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          <Box sx={{ flexGrow: 1, p: { xs: 2, sm: 4 } }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </Box>
+          <Footer />
         </Box>
       </Box>
 

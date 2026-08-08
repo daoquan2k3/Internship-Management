@@ -161,6 +161,7 @@ const ForgotPasswordPage = () => {
               type="submit"
               fullWidth
               variant="contained"
+              color="primary"
               disabled={isLoading}
               disableElevation
               sx={{
@@ -170,10 +171,7 @@ const ForgotPasswordPage = () => {
                 fontSize: "1rem",
                 fontWeight: 700,
                 borderRadius: "12px",
-                bgcolor: "text.primary",
-                color: "#fff",
                 textTransform: "none",
-                "&:hover": { bgcolor: "#334155" },
               }}
             >
               {isLoading ? (

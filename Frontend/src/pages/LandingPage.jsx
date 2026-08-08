@@ -1,5 +1,6 @@
 import { useThemeContext } from '../context/ThemeContext';
 import { Box, Typography, Button, Container, AppBar, Toolbar, Stack, Chip, Grid, IconButton } from '@mui/material';
+import { Footer } from '../components/layout/Footer';
 import { useNavigate } from 'react-router-dom';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -39,9 +40,9 @@ const FeatureCard = ({ icon, title, desc, delay, themeColors }) => (
       boxShadow: themeColors.cardShadow,
       transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
     }}>
-      <Box sx={{ 
-        p: 2, borderRadius: '16px', 
-        background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%)', 
+      <Box sx={{
+        p: 2, borderRadius: '16px',
+        background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%)',
         color: '#38bdf8', mb: 3,
         boxShadow: 'inset 0 0 0 1px rgba(56, 189, 248, 0.2)'
       }}>
@@ -143,7 +144,7 @@ const LandingPage = () => {
       {/* HERO SECTION */}
       <Container maxWidth="lg" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', pt: { xs: 18, md: 24 }, pb: 12, zIndex: 1, position: 'relative' }}>
         <Box component={motion.div} variants={staggerContainer} initial="hidden" animate="visible" sx={{ textAlign: 'center', maxWidth: '950px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          
+
           <motion.div variants={fadeUp}>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', p: '2px', borderRadius: '50px', background: 'linear-gradient(90deg, rgba(56,189,248,0.3) 0%, rgba(139,92,246,0.3) 100%)', mb: 4 }}>
               <Chip
@@ -199,33 +200,6 @@ const LandingPage = () => {
           </motion.div>
         </Box>
 
-        {/* MOCKUP IMAGE SECTION */}
-        <Box sx={{ width: '100%', mt: { xs: 8, md: 14 }, position: 'relative' }}>
-          <motion.div
-            initial={{ opacity: 0, y: 80 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
-            style={{ width: '100%', display: 'flex', justifyContent: 'center', zIndex: 1, position: 'relative' }}
-          >
-            <Box sx={{
-              width: '100%', maxWidth: '1200px',
-              borderRadius: '24px',
-              p: { xs: 1, sm: 2 },
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%)',
-              border: `1px solid ${themeColors.border}`,
-              borderBottom: 'none',
-              boxShadow: isDark ? '0 30px 80px -20px rgba(0,0,0,0.8)' : '0 30px 80px -20px rgba(0,0,0,0.15)',
-              backdropFilter: 'blur(20px)'
-            }}>
-              <Box component="img" src="/dashboard-mockup.png" alt="Dashboard Mockup" sx={{
-                width: '100%', height: 'auto', borderRadius: '16px', display: 'block',
-                border: `1px solid ${themeColors.border}`,
-                boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
-              }} />
-            </Box>
-          </motion.div>
-        </Box>
-
         {/* FEATURES SECTION */}
         <Box sx={{ mt: { xs: 10, md: 16 }, mb: 8, width: '100%' }}>
           <Typography variant="h2" sx={{ fontWeight: 800, textAlign: 'center', mb: 2, fontSize: { xs: '2rem', md: '2.75rem' }, color: themeColors.text }}>
@@ -260,6 +234,7 @@ const LandingPage = () => {
           </Grid>
         </Box>
       </Container>
+      <Footer />
     </Box>
   );
 };

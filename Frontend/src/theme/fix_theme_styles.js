@@ -43,24 +43,24 @@ const replacements = [
 
 function processDirectory(dir) {
     const files = fs.readdirSync(dir);
-    
+
     files.forEach(file => {
         const filePath = path.join(dir, file);
         const stats = fs.statSync(filePath);
-        
+
         if (stats.isDirectory()) {
             processDirectory(filePath);
         } else if (filePath.endsWith('.jsx')) {
             let content = fs.readFileSync(filePath, 'utf8');
             let modified = false;
-            
+
             replacements.forEach(({ regex, replacement }) => {
                 if (regex.test(content)) {
                     content = content.replace(regex, replacement);
                     modified = true;
                 }
             });
-            
+
             if (modified) {
                 fs.writeFileSync(filePath, content, 'utf8');
                 console.log(`Updated: ${filePath}`);
@@ -70,4 +70,3 @@ function processDirectory(dir) {
 }
 
 processDirectory(directoryPath);
-console.log('Done fixing theme styles!');
