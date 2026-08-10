@@ -8,7 +8,7 @@ COPY src src
 
 RUN chmod +x ./gradlew
 
-RUN ./gradlew build -x test
+RUN ./gradlew build -x test --no-daemon && rm -rf /root/.gradle /app/.gradle
 
 RUN rm -f build/libs/*-plain.jar
 
