@@ -76,6 +76,10 @@ public class UniversityClassServiceImpl implements IUniversityClassService {
         UniversityClass universityClass = classRepository.findById(classId)
                 .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
 
+        if (rep.getRole() == Role.ROLE_UNIVERSITY_REP && !universityClass.getUniversity().getUniversityId().equals(rep.getUniversity().getUniversityId())) {
+            throw new ResourceConflictException("You don't have permission for this class");
+        }
+
         if (request.getClassName() != null && !request.getClassName().isBlank()) {
             universityClass.setClassName(request.getClassName());
         }

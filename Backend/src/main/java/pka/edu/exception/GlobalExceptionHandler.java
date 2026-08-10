@@ -122,6 +122,54 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(org.springframework.security.access.AccessDeniedException ex) {
+        ApiResponse<Object> response = ApiResponse.builder()
+                .success(false)
+                .message("FORBIDDEN")
+                .data(null)
+                .error(Map.of("error", ex.getMessage() != null ? ex.getMessage() : "Access Denied. Bạn không có quyền truy cập vào tài nguyên này."))
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuthenticationException(org.springframework.security.core.AuthenticationException ex) {
+        ApiResponse<Object> response = ApiResponse.builder()
+                .success(false)
+                .message("UNAUTHORIZED")
+                .data(null)
+                .error(Map.of("error", ex.getMessage() != null ? ex.getMessage() : "Full authentication is required to access this resource."))
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(org.springframework.web.servlet.NoHandlerFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNotFoundException(org.springframework.web.servlet.NoHandlerFoundException ex) {
+        ApiResponse<Object> response = ApiResponse.builder()
+                .success(false)
+                .message("API_NOT_FOUND")
+                .data(null)
+                .error(Map.of("error", "API endpoint không tồn tại: " + ex.getRequestURL()))
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Object>> handleTypeMismatchException(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex) {
+        ApiResponse<Object> response = ApiResponse.builder()
+                .success(false)
+                .message("BAD_REQUEST")
+                .data(null)
+                .error(Map.of("error", "Sai định dạng tham số: " + ex.getName()))
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleAllExceptions(Exception ex) {
         String msg = ex.getMessage() != null ? ex.getMessage() : "Lỗi hệ thống không xác định";
@@ -135,7 +183,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // Đào sâu cause chain vi no duoc boc nhieu lop
     private Throwable getRootCause(Throwable throwable) {
         while (throwable.getCause() != null) {
             throwable = throwable.getCause();
