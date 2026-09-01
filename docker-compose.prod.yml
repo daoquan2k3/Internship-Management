@@ -11,6 +11,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
+
   redis:
     image: redis:alpine
     container_name: redis_server
@@ -27,7 +28,8 @@ services:
     restart: unless-stopped
 
   backend:
-    build: Backend
+    # Sử dụng image build từ Github Actions
+    image: ${DOCKER_USERNAME}/internship-backend:latest
     container_name: spring_backend
     ports:
       - "8080:8080"
@@ -38,7 +40,6 @@ services:
     env_file:
       - .env
     environment:
-      # Spring Boot sẽ kết nối với Redis & RabbitMQ thông qua TÊN SERVICE trong Docker
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/internship_db
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
@@ -52,7 +53,8 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: Frontend
+    # Sử dụng image build từ Github Actions
+    image: ${DOCKER_USERNAME}/internship-frontend:latest
     container_name: react_frontend
     ports:
       - "80:80"
