@@ -143,4 +143,5 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/internship-frontend:latest
 
             # Khởi động lại các container với image mới
+            docker-compose -f docker-compose.prod.yml down
             docker-compose -f docker-compose.prod.yml up -d
