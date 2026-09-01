@@ -111,13 +111,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Copy docker-compose.prod.yml to VPS
+      - name: Create .env file from GitHub Secrets
+        run: |
+          cat << 'EOF' > .env
+          ${{ secrets.ENV_FILE }}
+          EOF
+
+      - name: Copy docker-compose and .env to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "docker-compose.prod.yml"
+          source: "docker-compose.prod.yml,.env"
           target: "~/internship-management"
 
       - name: Deploy to VPS
