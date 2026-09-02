@@ -11,7 +11,7 @@ import { universityClassApi } from "../../api/universityApi";
 import { userApi } from "../../api/resourceApi";
 import { motion, AnimatePresence } from "framer-motion";
 
-const SEMESTER_OPTIONS = ["HK1", "HK2", "HK3", "HKH (HÃ¨)"];
+const SEMESTER_OPTIONS = ["HK1", "HK2", "HK3", "HKH (Hè)"];
 
 const emptyForm = { className: "", academicYear: "", semester: "", maxStudents: 50, teacherId: null };
 
@@ -19,12 +19,12 @@ const UniversityClasses = () => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Dialog táº¡o má»›i
+  // Dialog tạo má»›i
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [createForm, setCreateForm] = useState({ ...emptyForm });
   const [submittingCreate, setSubmittingCreate] = useState(false);
 
-  // Dialog chá»‰nh sá»­a
+  // Dialog chọnh sửa
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
   const [editForm, setEditForm] = useState({ ...emptyForm });
@@ -74,12 +74,12 @@ const UniversityClasses = () => {
       if (createForm.teacherId) {
         await universityClassApi.assignTeacher(classRes.classId || classRes.data?.classId, createForm.teacherId);
       }
-      toast.success("Táº¡o lá»›p há» c thÃ nh cÃ´ng!");
+      toast.success("Tạo lớp học thành công!");
       setOpenCreateDialog(false);
       setCreateForm({ ...emptyForm });
       fetchClasses();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Lá»—i khi táº¡o lá»›p.");
+      toast.error(error.response?.data?.message || "Lỗi khi tạo lớp.");
       console.error(error);
     } finally {
       setSubmittingCreate(false);
@@ -101,18 +101,18 @@ const UniversityClasses = () => {
 
   const handleEdit = async () => {
     if (!editForm.className) {
-      toast.warning("TÃªn lá»›p khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
+      toast.warning("Tên lớp không được để trống.");
       return;
     }
     setSubmittingEdit(true);
     try {
       await universityClassApi.updateClass(editingClass.classId, editForm);
-      toast.success("Cáº­p nháº­t lá»›p há» c thÃ nh cÃ´ng!");
+      toast.success("Cập nhật lớp học thành công!");
       setOpenEditDialog(false);
       setEditingClass(null);
       fetchClasses();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Lá»—i khi cáº­p nháº­t lá»›p.");
+      toast.error(error.response?.data?.message || "Lỗi khi cập nhật lớp.");
       console.error(error);
     } finally {
       setSubmittingEdit(false);
@@ -157,13 +157,13 @@ const UniversityClasses = () => {
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f8f9fa' }}>
-                  <TableCell sx={{ fontWeight: 700 }}>ID Lá»›p</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>TÃªn Lá»›p</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>NÄƒm há»c</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Ká»³ há»c</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 700 }}>Sá»‘ lÆ°á»£ng SV</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>GiÃ¡o viÃªn phá»¥ trÃ¡ch</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 700 }}>Thao tÃ¡c</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>ID Lớp</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Tên Lớp</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Năm học</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Kỳ học</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Số lượng SV</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Giáo viên phụ trách</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Thao tác</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -190,11 +190,11 @@ const UniversityClasses = () => {
                             {c.className}
                           </Box>
                         </TableCell>
-                        <TableCell>{c.academicYear || <Typography variant="body2" color="text.disabled" fontStyle="italic">ChÆ°a cÃ³</Typography>}</TableCell>
+                        <TableCell>{c.academicYear || <Typography variant="body2" color="text.disabled" fontStyle="italic">Chưa có</Typography>}</TableCell>
                         <TableCell>
                           {c.semester
                             ? <Chip label={c.semester} size="small" color="info" sx={{ fontWeight: 600 }} />
-                            : <Typography variant="body2" color="text.disabled" fontStyle="italic">ChÆ°a cÃ³</Typography>
+                            : <Typography variant="body2" color="text.disabled" fontStyle="italic">Chưa có</Typography>
                           }
                         </TableCell>
                         <TableCell align="center" sx={{ minWidth: 140 }}>
@@ -216,9 +216,9 @@ const UniversityClasses = () => {
                             />
                           </Box>
                         </TableCell>
-                        <TableCell sx={{ fontWeight: 500 }}>{c.teacherName || <Typography variant="body2" color="text.disabled" fontStyle="italic">ChÆ°a phÃ¢n cÃ´ng</Typography>}</TableCell>
+                        <TableCell sx={{ fontWeight: 500 }}>{c.teacherName || <Typography variant="body2" color="text.disabled" fontStyle="italic">Chưa phân công</Typography>}</TableCell>
                         <TableCell align="center">
-                          <Tooltip title="Chá»‰nh sá»­a lá»›p há»c">
+                          <Tooltip title="Chỉnh sửa lớp học">
                             <IconButton
                               size="small"
                               onClick={() => handleOpenEdit(c)}
@@ -248,15 +248,15 @@ const UniversityClasses = () => {
 
       <Dialog open={openCreateDialog} onClose={() => !submittingCreate && setOpenCreateDialog(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
         <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontWeight: 800, pb: 1 }}>
-          <Typography variant="h6" fontWeight={800} color="primary.light">Táº¡o Lá»›p Thá»±c Táº­p Má»›i</Typography>
+          <Typography variant="h6" fontWeight={800} color="primary.light">Tạo Lớp Thực Tập Mới</Typography>
           <IconButton size="small" onClick={() => setOpenCreateDialog(false)}><CloseIcon /></IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: "20px !important", pb: 3, px: 3 }}>
           <Stack spacing={3.5} sx={{ mt: 1 }}>
-            <TextField label="TÃªn lá»›p (*)" value={createForm.className} onChange={(e) => setCreateForm({ ...createForm, className: e.target.value })} fullWidth variant="outlined" />
+            <TextField label="Tên lớp (*)" value={createForm.className} onChange={(e) => setCreateForm({ ...createForm, className: e.target.value })} fullWidth variant="outlined" />
             <Stack direction="row" spacing={2.5} sx={{ width: "100%" }}>
               <TextField
-                label="NÄƒm há»c"
+                label="Năm học"
                 value={createForm.academicYear}
                 onChange={(e) => setCreateForm({ ...createForm, academicYear: e.target.value })}
                 sx={{ flex: 1 }}
@@ -264,29 +264,29 @@ const UniversityClasses = () => {
               />
               <TextField
                 select
-                label="Ká»³ há»c"
+                label="Kỳ học"
                 value={createForm.semester}
                 onChange={(e) => setCreateForm({ ...createForm, semester: e.target.value })}
                 sx={{ flex: 1 }}
               >
-                <MenuItem value="">-- Chá»n ká»³ --</MenuItem>
+                <MenuItem value="">-- Chọn kỳ --</MenuItem>
                 {SEMESTER_OPTIONS.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
             </Stack>
-            <TextField label="Sá»‘ lÆ°á»£ng SV tá»‘i Ä‘a" type="number" value={createForm.maxStudents} onChange={(e) => setCreateForm({ ...createForm, maxStudents: parseInt(e.target.value) || 50 })} fullWidth inputProps={{ min: 1 }} />
+            <TextField label="Số lượng SV tối đa" type="number" value={createForm.maxStudents} onChange={(e) => setCreateForm({ ...createForm, maxStudents: parseInt(e.target.value) || 50 })} fullWidth inputProps={{ min: 1 }} />
             <Autocomplete
               options={teachers}
               getOptionLabel={(option) => option.fullName + " (" + option.email + ")"}
               onChange={(_, newValue) => setCreateForm({ ...createForm, teacherId: newValue?.userId })}
-              renderInput={(params) => <TextField {...params} label="GiÃ¡o viÃªn phá»¥ trÃ¡ch (TÃ¹y chá»n)" helperText="CÃ³ thá»ƒ phÃ¢n cÃ´ng sau" />}
+              renderInput={(params) => <TextField {...params} label="Giáo viên phụ trách (Tùy chọn)" helperText="Có thể phân công sau" />}
               fullWidth
             />
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1, gap: 1 }}>
-          <Button onClick={() => setOpenCreateDialog(false)} disabled={submittingCreate} variant="outlined" sx={{ borderRadius: 2 }}>Há»§y bá»</Button>
+          <Button onClick={() => setOpenCreateDialog(false)} disabled={submittingCreate} variant="outlined" sx={{ borderRadius: 2 }}>Hủy bỏ</Button>
           <Button variant="contained" onClick={handleCreate} disabled={submittingCreate} sx={{ borderRadius: 2, px: 4 }}>
-            {submittingCreate ? <CircularProgress size={20} color="inherit" /> : "LÆ°u lá»›p há»c"}
+            {submittingCreate ? <CircularProgress size={20} color="inherit" /> : "Lưu lớp học"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -294,15 +294,15 @@ const UniversityClasses = () => {
 
       <Dialog open={openEditDialog} onClose={() => !submittingEdit && setOpenEditDialog(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
         <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontWeight: 800, pb: 1 }}>
-          <Typography variant="h6" fontWeight={800} color="warning.main">Chá»‰nh sá»­a Lá»›p #{editingClass?.classId}</Typography>
+          <Typography variant="h6" fontWeight={800} color="warning.main">Chỉnh sửa Lớp #{editingClass?.classId}</Typography>
           <IconButton size="small" onClick={() => setOpenEditDialog(false)}><CloseIcon /></IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: "20px !important", pb: 3, px: 3 }}>
           <Stack spacing={3.5} sx={{ mt: 1 }}>
-            <TextField label="TÃªn lá»›p (*)" value={editForm.className} onChange={(e) => setEditForm({ ...editForm, className: e.target.value })} fullWidth variant="outlined" />
+            <TextField label="Tên lớp (*)" value={editForm.className} onChange={(e) => setEditForm({ ...editForm, className: e.target.value })} fullWidth variant="outlined" />
             <Stack direction="row" spacing={2.5} sx={{ width: "100%" }}>
               <TextField
-                label="NÄƒm há»c"
+                label="Năm học"
                 value={editForm.academicYear}
                 onChange={(e) => setEditForm({ ...editForm, academicYear: e.target.value })}
                 sx={{ flex: 1 }}
@@ -310,30 +310,30 @@ const UniversityClasses = () => {
               />
               <TextField
                 select
-                label="Ká»³ há»c"
+                label="Kỳ học"
                 value={editForm.semester}
                 onChange={(e) => setEditForm({ ...editForm, semester: e.target.value })}
                 sx={{ flex: 1 }}
               >
-                <MenuItem value="">-- Chá»n ká»³ --</MenuItem>
+                <MenuItem value="">-- Chọn kỳ --</MenuItem>
                 {SEMESTER_OPTIONS.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
             </Stack>
-            <TextField label="Sá»‘ lÆ°á»£ng SV tá»‘i Ä‘a" type="number" value={editForm.maxStudents} onChange={(e) => setEditForm({ ...editForm, maxStudents: parseInt(e.target.value) || 50 })} fullWidth inputProps={{ min: 1 }} />
+            <TextField label="Số lượng SV tối đa" type="number" value={editForm.maxStudents} onChange={(e) => setEditForm({ ...editForm, maxStudents: parseInt(e.target.value) || 50 })} fullWidth inputProps={{ min: 1 }} />
             <Autocomplete
               options={teachers}
               getOptionLabel={(option) => option.fullName + " (" + option.email + ")"}
               value={getTeacherValue(editForm.teacherId)}
               onChange={(_, newValue) => setEditForm({ ...editForm, teacherId: newValue?.userId || null })}
-              renderInput={(params) => <TextField {...params} label="GiÃ¡o viÃªn phá»¥ trÃ¡ch" />}
+              renderInput={(params) => <TextField {...params} label="Giáo viên phụ trách" />}
               fullWidth
             />
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1, gap: 1 }}>
-          <Button onClick={() => setOpenEditDialog(false)} disabled={submittingEdit} variant="outlined" sx={{ borderRadius: 2 }}>Há»§y bá»</Button>
+          <Button onClick={() => setOpenEditDialog(false)} disabled={submittingEdit} variant="outlined" sx={{ borderRadius: 2 }}>Hủy bỏ</Button>
           <Button variant="contained" color="warning" onClick={handleEdit} disabled={submittingEdit} sx={{ borderRadius: 2, px: 4, fontWeight: 700 }}>
-            {submittingEdit ? <CircularProgress size={20} color="inherit" /> : "LÆ°u thay Ä‘á»•i"}
+            {submittingEdit ? <CircularProgress size={20} color="inherit" /> : "Lưu thay đổi"}
           </Button>
         </DialogActions>
       </Dialog>
