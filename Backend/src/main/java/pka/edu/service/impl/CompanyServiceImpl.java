@@ -13,6 +13,7 @@ import pka.edu.dto.response.CompanyResponse;
 import pka.edu.dto.response.PageResponseDTO;
 import pka.edu.entity.Company;
 import pka.edu.entity.User;
+import pka.edu.exception.ResourceConflictException;
 import pka.edu.exception.ResourceNotFoundException;
 import pka.edu.mapper.CompanyMapper;
 import pka.edu.repository.CompanyRepository;
@@ -60,7 +61,7 @@ public class CompanyServiceImpl implements ICompanyService {
     @Transactional
     public CompanyResponse createCompany(CompanyCreateRequest request) {
         if (companyRepository.existsByCompanyCode(request.getCompanyCode())) {
-            throw new RuntimeException("Company code already exists");
+            throw new ResourceConflictException("Company code already exists");
         }
 
         Company company = CompanyMapper.toEntity(request);
