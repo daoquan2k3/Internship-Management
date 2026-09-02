@@ -8,9 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import java.util.Optional;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
+
+    Optional<Report> findByUser_UserIdAndAssessmentRound_RoundId(Long userId, Long roundId);
 
     @Query("select r from Report r where (:keyword is null or :keyword = '' or lower(r.title) like lower(concat('%', :keyword, '%')))")
     Page<Report> findAllByAdmin(@Param("keyword") String keyword,

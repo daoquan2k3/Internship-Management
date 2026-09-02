@@ -55,6 +55,6 @@ rabbitmq:
 
 app:
   mail:
-    sender: ${MAIL_SENDER:noreply@yourdomain.com}
+    sender: ${MAIL_SENDER:daoanhquan2k3@gmail.com}
   frontend:
     url: ${FRONTEND_URL}

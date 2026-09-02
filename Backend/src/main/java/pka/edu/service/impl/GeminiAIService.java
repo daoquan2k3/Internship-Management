@@ -32,15 +32,46 @@ public class GeminiAIService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private final com.cloudinary.Cloudinary cloudinary;
+
     public Map<String, String> analyzeReport(String imageUrl) throws Exception {
         if (geminiApiKey == null || geminiApiKey.isEmpty() || geminiApiKey.equals("your_key_here")) {
             throw new Exception("Chưa cấu hình Gemini API Key (GEMINI_API_KEY) trong biến môi trường.");
         }
 
         log.info("Bắt đầu tải file báo cáo từ: {}", imageUrl);
+        String signedUrl = imageUrl.replace(" ", "%20");
+        try {
+            if (imageUrl.contains("cloudinary.com")) {
+                int uploadIdx = imageUrl.indexOf("/upload/");
+                if (uploadIdx != -1) {
+                    String afterUpload = imageUrl.substring(uploadIdx + 8);
+                    String publicIdWithExt = afterUpload;
+                    String version = "1";
+                    if (afterUpload.matches("^v\\d+/.*")) {
+                        version = afterUpload.split("/")[0].substring(1);
+                        publicIdWithExt = afterUpload.replaceFirst("^v\\d+/", "");
+                    }
+                    String resourceType = imageUrl.contains("/raw/upload/") ? "raw" : "image";
+                    signedUrl = cloudinary.url()
+                            .resourceType(resourceType)
+                            .type("upload")
+                            .secure(true)
+                            .version(version)
+                            .generate(publicIdWithExt);
+                    log.info("Generated URL for Cloudinary download: {}", signedUrl);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to generate URL, using original URL: {}", e.getMessage());
+        }
+
         ResponseEntity<byte[]> fileEntity;
         try {
-            fileEntity = restTemplate.getForEntity(java.net.URI.create(imageUrl.replace(" ", "%20")), byte[].class);
+            HttpHeaders reqHeaders = new HttpHeaders();
+            reqHeaders.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+            HttpEntity<String> reqEntity = new HttpEntity<>(reqHeaders);
+            fileEntity = restTemplate.exchange(java.net.URI.create(signedUrl), org.springframework.http.HttpMethod.GET, reqEntity, byte[].class);
         } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized e) {
             throw new Exception("Lỗi bảo mật từ Cloudinary (401 Unauthorized). File báo cáo này đã bị chặn quyền truy cập do thiết lập bảo mật. Vui lòng XÓA file báo cáo cũ và UPLOAD lại file mới để sử dụng tính năng AI.");
         } catch (Exception e) {

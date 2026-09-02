@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import {
-  Box, Typography, Paper, Stack, Button, TextField, CircularProgress, Alert, IconButton, Divider
+  Box, Typography, Paper, Stack, Button, TextField, CircularProgress, Alert, IconButton, Divider, Grid
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
@@ -16,6 +16,8 @@ const RoundReportCard = ({ round, report, onUploadSuccess, handleDownload }) => 
   const [title, setTitle] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState(null);
+  const [isResubmitting, setIsResubmitting] = useState(false);
+  const [showGrading, setShowGrading] = useState(false);
   const fileInputRef = useRef(null);
 
   const parseDateStr = (dateStr) => {
@@ -84,6 +86,7 @@ const RoundReportCard = ({ round, report, onUploadSuccess, handleDownload }) => 
         toast.success("Tải báo cáo lên thành công!");
         setTitle("");
         handleRemoveFile();
+        setIsResubmitting(false);
         onUploadSuccess(); // Refresh
       } else {
         const errorMsg = response?.data?.errorDescription || response?.data?.error || response?.data?.message || "Upload thất bại";
@@ -104,21 +107,21 @@ const RoundReportCard = ({ round, report, onUploadSuccess, handleDownload }) => 
 
   return (
     <Paper sx={{ p: { xs: 3, sm: 4 }, borderRadius: 4, boxShadow: "0 4px 20px rgba(0,0,0,0.05)", mb: 4 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", mb: 2, gap: 1 }}>
         <Typography variant="h6" sx={{ fontWeight: 700, color: "primary.main" }}>
           {round.roundName}
         </Typography>
-        <Typography variant="body2" sx={{ color: isAfterEnd && !report ? "error.main" : "text.secondary", fontWeight: 600 }}>
+        <Typography variant="body2" sx={{ color: isAfterEnd && !report ? "error.main" : "text.secondary", fontWeight: 600, ml: "auto" }}>
           {round.startDate} - {round.endDate}
         </Typography>
-      </Stack>
+      </Box>
       <Typography variant="body2" color="text.secondary" mb={3}>
         {round.description}
       </Typography>
 
       <Divider sx={{ mb: 3 }} />
 
-      {report ? (
+      {report && !isResubmitting ? (
         <Box
           sx={{
             p: 2.5,
@@ -130,7 +133,7 @@ const RoundReportCard = ({ round, report, onUploadSuccess, handleDownload }) => 
           }}
         >
           <Stack direction="row" alignItems="flex-start" justifyContent="space-between" width="100%">
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ flexGrow: 1, mr: 2 }}>
               <Box
                 sx={{
                   width: 48, height: 48, borderRadius: 2,
@@ -141,14 +144,16 @@ const RoundReportCard = ({ round, report, onUploadSuccess, handleDownload }) => 
               >
                 <AssignmentIcon />
               </Box>
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "text.primary" }}>
-                  {report.title}
-                </Typography>
-                <Stack direction="row" spacing={2} alignItems="center" mt={0.5}>
+              <Box sx={{ flexGrow: 1 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "text.primary" }}>
+                    {report.title}
+                  </Typography>
                   <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500 }}>
                     Nộp lúc: {report.uploadTime}
                   </Typography>
+                </Stack>
+                <Stack direction="row" spacing={2} alignItems="center" mt={0.5}>
                   <Box
                     sx={{
                       px: 1.5, py: 0.25, borderRadius: 8, fontSize: "0.75rem", fontWeight: 700,
@@ -165,45 +170,76 @@ const RoundReportCard = ({ round, report, onUploadSuccess, handleDownload }) => 
                 </Stack>
               </Box>
             </Stack>
-            <IconButton
-              size="small"
-              sx={{
-                color: (theme) => theme.palette.mode === 'dark' ? "#38bdf8" : "primary.main",
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? "rgba(56, 189, 248, 0.15)" : "primary.50",
-                "&:hover": { bgcolor: (theme) => theme.palette.mode === 'dark' ? "rgba(56, 189, 248, 0.25)" : "primary.100" }
-              }}
-              onClick={() => handleDownload(report)}
-            >
-              <DownloadIcon fontSize="small" />
-            </IconButton>
+            <Stack direction="row" spacing={1}>
+              {report.reportStatus === "GRADED" && (
+                <Button
+                  size="small"
+                  variant={showGrading ? "contained" : "outlined"}
+                  color="success"
+                  onClick={() => setShowGrading(!showGrading)}
+                  sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
+                  startIcon={<StarIcon />}
+                >
+                  Điểm số
+                </Button>
+              )}
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => setIsResubmitting(true)}
+                sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600 }}
+              >
+                Nộp lại
+              </Button>
+              <IconButton
+                size="small"
+                sx={{
+                  color: (theme) => theme.palette.mode === 'dark' ? "#38bdf8" : "primary.main",
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? "rgba(56, 189, 248, 0.15)" : "primary.50",
+                  "&:hover": { bgcolor: (theme) => theme.palette.mode === 'dark' ? "rgba(56, 189, 248, 0.25)" : "primary.100" }
+                }}
+                onClick={() => handleDownload(report)}
+              >
+                <DownloadIcon fontSize="small" />
+              </IconButton>
+            </Stack>
           </Stack>
 
-          {report.reportStatus === "GRADED" && (
+          {showGrading && report.reportStatus === "GRADED" && (
             <Box
               sx={{
-                mt: 3, p: 2,
+                mt: 3, p: 3,
                 bgcolor: (theme) => theme.palette.mode === 'dark' ? "rgba(0, 0, 0, 0.25)" : "#fff",
                 borderRadius: 2,
                 border: (theme) => theme.palette.mode === 'dark' ? "1px dashed rgba(255, 255, 255, 0.15)" : "1px dashed #cbd5e1"
               }}
             >
-              <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-                <StarIcon sx={{ color: "#fbbf24", fontSize: 20 }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "text.primary" }}>
-                  Điểm: {report.score}
-                </Typography>
-              </Stack>
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                Nhận xét: {report.feedback}
+              <Typography variant="h6" sx={{ fontWeight: 700, color: "success.main", mb: 2, display: 'flex', alignItems: 'center' }}>
+                <StarIcon sx={{ mr: 1 }} /> Kết quả đánh giá
               </Typography>
+              <Divider sx={{ mb: 2 }} />
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" color="text.secondary">Điểm số</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary" }}>
+                    {report.score} / 10
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={8}>
+                  <Typography variant="subtitle2" color="text.secondary">Nhận xét của giáo viên</Typography>
+                  <Typography variant="body1" sx={{ color: "text.primary", mt: 0.5, whiteSpace: "pre-wrap" }}>
+                    {report.feedback || "Không có nhận xét."}
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
           )}
         </Box>
-      ) : isBeforeStart ? (
+      ) : (isBeforeStart && !isResubmitting) ? (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
           Đợt nộp báo cáo này chưa bắt đầu. Hãy quay lại vào ngày {round.startDate}.
         </Alert>
-      ) : isAfterEnd ? (
+      ) : (isAfterEnd && !isResubmitting) ? (
         <Alert severity="error" sx={{ borderRadius: 2 }}>
           Đã quá hạn nộp báo cáo cho đợt này.
         </Alert>
@@ -252,15 +288,28 @@ const RoundReportCard = ({ round, report, onUploadSuccess, handleDownload }) => 
                 </>
               )}
             </Box>
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              disabled={isUploading}
-              startIcon={isUploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
-              sx={{ py: 1.5, borderRadius: 2, fontWeight: 700 }}
-            >
-              {isUploading ? "ĐANG TẢI LÊN..." : "XÁC NHẬN NỘP BÁO CÁO"}
-            </Button>
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="contained"
+                onClick={handleSubmit}
+                disabled={isUploading}
+                startIcon={isUploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
+                sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, flex: 1 }}
+              >
+                {isUploading ? "ĐANG TẢI LÊN..." : isResubmitting ? "XÁC NHẬN NỘP LẠI" : "XÁC NHẬN NỘP BÁO CÁO"}
+              </Button>
+              {isResubmitting && (
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={() => setIsResubmitting(false)}
+                  disabled={isUploading}
+                  sx={{ py: 1.5, borderRadius: 2, fontWeight: 700 }}
+                >
+                  HỦY
+                </Button>
+              )}
+            </Stack>
           </Stack>
         </Box>
       )}

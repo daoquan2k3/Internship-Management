@@ -57,14 +57,16 @@ const ReportHistoryList = ({
                   <Avatar sx={{ bgcolor: "#e0f2fe", color: "#0284c7" }}>
                     <AssignmentIcon />
                   </Avatar>
-                  <Box>
-                    <Typography sx={{ fontWeight: 700, color: "text.primary", fontSize: "1.05rem" }}>
-                      {report.title}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-                      Ngày nộp: <span style={{ fontWeight: 500, color: "text.secondary" }}>{report.uploadTime}</span>
-                    </Typography>
-                    <Typography variant="caption" sx={{ display: "block", color: "text.secondary" }}>
+                  <Box sx={{ flexGrow: 1, mr: 2 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography sx={{ fontWeight: 700, color: "text.primary", fontSize: "1.05rem" }}>
+                        {report.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                        Ngày nộp: <span style={{ fontWeight: 500, color: "text.secondary" }}>{report.uploadTime}</span>
+                      </Typography>
+                    </Stack>
+                    <Typography variant="caption" sx={{ display: "block", color: "text.secondary", mt: 0.5 }}>
                       File gốc: {report.originalFileName}
                     </Typography>
                   </Box>

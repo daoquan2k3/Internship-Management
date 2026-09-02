@@ -82,15 +82,26 @@ public class ReportServiceImpl implements IReportService {
             AssessmentRound round = assessmentRoundsRepository.findById(roundId)
                     .orElseThrow(() -> new ResourceNotFoundException("Assessment Round not found with id: " + roundId));
 
-            Report report = Report.builder()
-                    .title(title)
-                    .originalFileName(file.getOriginalFilename())
-                    .fileUrl(fileUrl)
-                    .uploadTime(LocalDateTime.now())
-                    .user(currentUserUtil.getCurrentUser().getStudent().getUser())
-                    .assessmentRound(round)
-                    .universityClass(round.getUniversityClass())
-                    .build();
+            User currentUser = currentUserUtil.getCurrentUser().getStudent().getUser();
+            
+            Report report = reportRepository.findByUser_UserIdAndAssessmentRound_RoundId(currentUser.getUserId(), roundId)
+                    .orElse(Report.builder()
+                            .user(currentUser)
+                            .assessmentRound(round)
+                            .universityClass(round.getUniversityClass())
+                            .build());
+
+            report.setTitle(title);
+            report.setOriginalFileName(file.getOriginalFilename());
+            report.setFileUrl(fileUrl);
+            report.setUploadTime(LocalDateTime.now());
+            report.setReportStatus(ReportStatus.PENDING);
+            report.setScore(null);
+            report.setFeedback(null);
+            report.setAiSummary(null);
+            report.setAiBlockers(null);
+            report.setAiSentiment(null);
+            report.setAiSuggestedFeedback(null);
 
             Report savedReport = reportRepository.save(report);
 
