@@ -217,25 +217,21 @@ public class InternshipApplicationServiceImpl implements InternshipApplicationSe
         placementService.createPlacement(saved.getApplicationId());
 
         if (saved.getStudent() != null && saved.getStudent().getUser() != null) {
+            String subject = "Thông báo duyệt vào lớp thực tập";
+            String emailBody = "<h1>Chào " + saved.getStudent().getUser().getFullName() + ",</h1>"
+                    + "<p>Đơn xin vào lớp thực tập <strong>" + universityClass.getClassName()
+                    + "</strong> của bạn đã được Giáo viên phụ trách chấp thuận.</p>"
+                    + "<p>Chúc bạn có một kỳ thực tập thành công!</p>";
+
             NotificationEventDTO notification = NotificationEventDTO.builder()
                     .recipientId(saved.getStudent().getUser().getUserId())
-                    .title("🔔 Đơn vào lớp thực tập đã được duyệt!")
+                    .title(subject)
                     .message("Đơn xin gia nhập lớp '" + universityClass.getClassName()
                             + "' của bạn đã được Giáo viên chấp thuận!")
                     .type("APPLICATION_APPROVED")
+                    .emailContent(emailBody)
                     .build();
             rabbitTemplate.convertAndSend(exchangeName, routingKey, notification);
-
-            try {
-                String subject = "Thông báo duyệt vào lớp thực tập";
-                String body = "<h1>Chào " + saved.getStudent().getUser().getFullName() + ",</h1>"
-                        + "<p>Đơn xin vào lớp thực tập <strong>" + universityClass.getClassName()
-                        + "</strong> của bạn đã được Giáo viên phụ trách chấp thuận.</p>"
-                        + "<p>Chúc bạn có một kỳ thực tập thành công!</p>";
-                emailService.sendEmail(saved.getStudent().getUser().getEmail(), subject, body);
-            } catch (Exception e) {
-                log.error("Lỗi gửi email thông báo duyệt lớp: ", e);
-            }
         }
 
         return InternshipApplicationMapper.toDto(saved);
@@ -265,24 +261,20 @@ public class InternshipApplicationServiceImpl implements InternshipApplicationSe
             application.setPosition(null);
 
             if (application.getStudent() != null && application.getStudent().getUser() != null) {
+                String subject = "Thông báo từ chối đơn thực tập từ doanh nghiệp";
+                String emailBody = "<h1>Chào " + application.getStudent().getUser().getFullName() + ",</h1>"
+                        + "<p>Đơn xin thực tập của bạn tại <strong>" + oldCompanyName + "</strong> đã bị từ chối.</p>"
+                        + "<p><strong>Lý do từ chối:</strong> " + reason + "</p>"
+                        + "<p>Đơn của bạn hiện tại đã trở về trạng thái 'Chưa có công ty'. Giáo viên chủ nhiệm sẽ cân nhắc duyệt hoặc sắp xếp công ty cho bạn.</p>";
+
                 NotificationEventDTO notification = NotificationEventDTO.builder()
                         .recipientId(application.getStudent().getUser().getUserId())
-                        .title("🔔 Đơn xin thực tập bị từ chối")
+                        .title(subject)
                         .message("Đơn xin thực tập tại " + oldCompanyName + " của bạn đã bị từ chối. Lý do: " + reason + ". Đơn của bạn hiện chưa có công ty.")
                         .type("APPLICATION_REJECTED")
+                        .emailContent(emailBody)
                         .build();
                 rabbitTemplate.convertAndSend(exchangeName, routingKey, notification);
-
-                try {
-                    String subject = "Thông báo từ chối đơn thực tập từ doanh nghiệp";
-                    String body = "<h1>Chào " + application.getStudent().getUser().getFullName() + ",</h1>"
-                            + "<p>Đơn xin thực tập của bạn tại <strong>" + oldCompanyName + "</strong> đã bị từ chối.</p>"
-                            + "<p><strong>Lý do từ chối:</strong> " + reason + "</p>"
-                            + "<p>Đơn của bạn hiện tại đã trở về trạng thái 'Chưa có công ty'. Giáo viên chủ nhiệm sẽ cân nhắc duyệt hoặc sắp xếp công ty cho bạn.</p>";
-                    emailService.sendEmail(application.getStudent().getUser().getEmail(), subject, body);
-                } catch (Exception e) {
-                    log.error("Lỗi gửi email thông báo từ chối: ", e);
-                }
             }
         } else {
             // Teacher / Admin / Uni Rep rejects
@@ -290,25 +282,21 @@ public class InternshipApplicationServiceImpl implements InternshipApplicationSe
             application.setStatus(JoinRequestStatus.REJECTED);
 
             if (application.getStudent() != null && application.getStudent().getUser() != null) {
+                String subject = "Thông báo từ chối duyệt vào lớp thực tập";
+                String emailBody = "<h1>Chào " + application.getStudent().getUser().getFullName() + ",</h1>"
+                        + "<p>Đơn xin vào lớp thực tập <strong>" + application.getUniversityClass().getClassName()
+                        + "</strong> của bạn đã bị từ chối.</p>"
+                        + "<p><strong>Lý do từ chối:</strong> " + reason + "</p>"
+                        + "<p>Vui lòng liên hệ với Giáo viên phụ trách hoặc Khoa để biết thêm chi tiết.</p>";
+
                 NotificationEventDTO notification = NotificationEventDTO.builder()
                         .recipientId(application.getStudent().getUser().getUserId())
-                        .title("🔔 Đơn xin vào lớp bị từ chối")
+                        .title(subject)
                         .message("Đơn xin gia nhập lớp '" + application.getUniversityClass().getClassName() + "' của bạn đã bị từ chối. Lý do: " + reason)
                         .type("APPLICATION_REJECTED")
+                        .emailContent(emailBody)
                         .build();
                 rabbitTemplate.convertAndSend(exchangeName, routingKey, notification);
-
-                try {
-                    String subject = "Thông báo từ chối duyệt vào lớp thực tập";
-                    String body = "<h1>Chào " + application.getStudent().getUser().getFullName() + ",</h1>"
-                            + "<p>Đơn xin vào lớp thực tập <strong>" + application.getUniversityClass().getClassName()
-                            + "</strong> của bạn đã bị từ chối.</p>"
-                            + "<p><strong>Lý do từ chối:</strong> " + reason + "</p>"
-                            + "<p>Vui lòng liên hệ với Giáo viên phụ trách hoặc Khoa để biết thêm chi tiết.</p>";
-                    emailService.sendEmail(application.getStudent().getUser().getEmail(), subject, body);
-                } catch (Exception e) {
-                    log.error("Lỗi gửi email thông báo từ chối lớp: ", e);
-                }
             }
         }
 

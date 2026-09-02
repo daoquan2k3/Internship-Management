@@ -12,4 +12,5 @@ public class NotificationEventDTO {
     private String title;
     private String message;
     private String type;
+    private String emailContent; // Optional HTML content for the email
 }

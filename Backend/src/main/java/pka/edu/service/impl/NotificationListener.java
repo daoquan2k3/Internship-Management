@@ -33,7 +33,8 @@ public class NotificationListener {
             // Send email
             if (recipient.getEmail() != null && !recipient.getEmail().isEmpty()) {
                 String subject = eventDTO.getTitle() != null ? eventDTO.getTitle() : "Thông báo mới từ hệ thống Internship PKA";
-                emailService.sendEmail(recipient.getEmail(), subject, eventDTO.getMessage());
+                String body = eventDTO.getEmailContent() != null ? eventDTO.getEmailContent() : eventDTO.getMessage();
+                emailService.sendEmail(recipient.getEmail(), subject, body);
                 log.info("Đã gửi email thông báo thành công tới: {}", recipient.getEmail());
             }
 

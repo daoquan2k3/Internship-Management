@@ -141,13 +141,24 @@ public class UniversityJoinRequestServiceImpl implements IUniversityJoinRequestS
             }
             userRepository.save(student);
 
-            sendApprovalEmail(student);
+            String subject = "Hướng dẫn làm đơn xin vào lớp thực tập";
+            String emailBody = "<h1>Chào " + student.getFullName() + ",</h1>"
+                    + "<p>Yêu cầu tham gia trường của bạn đã được duyệt.</p>"
+                    + "<p>Vui lòng làm theo hướng dẫn sau để nộp đơn vào lớp thực tập:</p>"
+                    + "<ul>"
+                    + "<li>Bước 1: Tải mẫu đơn tại trang chủ hệ thống.</li>"
+                    + "<li>Bước 2: Điền đầy đủ thông tin vào mẫu đơn và có chữ ký xác nhận.</li>"
+                    + "<li>Bước 3: Nộp bản mềm (ảnh chụp/scan) lên hệ thống (phần Nộp đơn).</li>"
+                    + "<li>Bước 4: Nộp bản cứng tại văn phòng khoa.</li>"
+                    + "</ul>"
+                    + "<p>Chúc bạn có một kỳ thực tập thành công!</p>";
 
             NotificationEventDTO notification = NotificationEventDTO.builder()
                     .recipientId(student.getUserId())
-                    .title("🔔 Đơn vào trường đã được duyệt!")
+                    .title(subject)
                     .message("Yêu cầu tham gia trường " + saved.getUniversity().getUniversityName() + " của bạn đã được chấp thuận. Vui lòng nộp đơn vào lớp thực tập!")
                     .type("UNIVERSITY_JOIN_APPROVED")
+                    .emailContent(emailBody)
                     .build();
             rabbitTemplate.convertAndSend(exchangeName, routingKey, notification);
         }
@@ -174,20 +185,6 @@ public class UniversityJoinRequestServiceImpl implements IUniversityJoinRequestS
         return PaginationUtil.toPageResponseDTO(page, UniversityJoinRequestMapper::toDto);
     }
 
-    private void sendApprovalEmail(User student) {
-        String subject = "Hướng dẫn làm đơn xin vào lớp thực tập";
-        String body = "<h1>Chào " + student.getFullName() + ",</h1>"
-                + "<p>Yêu cầu tham gia trường của bạn đã được duyệt.</p>"
-                + "<p>Vui lòng làm theo hướng dẫn sau để nộp đơn vào lớp thực tập:</p>"
-                + "<ul>"
-                + "<li>Bước 1: Tải mẫu đơn tại trang chủ hệ thống.</li>"
-                + "<li>Bước 2: Điền đầy đủ thông tin vào mẫu đơn và có chữ ký xác nhận.</li>"
-                + "<li>Bước 3: Nộp bản mềm (ảnh chụp/scan) lên hệ thống (phần Nộp đơn).</li>"
-                + "<li>Bước 4: Nộp bản cứng tại văn phòng khoa.</li>"
-                + "</ul>"
-                + "<p>Chúc bạn có một kỳ thực tập thành công!</p>";
-        emailService.sendEmail(student.getEmail(), subject, body);
-    }
 
     @Override
     public PageResponseDTO<UniversityJoinRequestResponse> getMyRequests(Long studentUserId, Pageable pageable) {
